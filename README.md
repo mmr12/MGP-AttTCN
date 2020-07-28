@@ -15,11 +15,9 @@ STEP II: data extraction & preprocessing
 `python scr/data_processing/main.py [-h] -u SQLUSER -pw SQLPASS -ht HOST -db DBNAME -r SCHEMA_READ_NAME [-w SCHEMA_WRITE_NAME]`
 
 STEP III: run the model
-TODO
 
 Project Organization
 ------------
-TODO: update
 
     ├── LICENSE
     ├── README.md          <- The top-level README for developers using this project.
@@ -63,4 +61,4 @@ TODO: update
 
 Credits 
 ------------
-Credits to M. Moor (& J. Futoma?)
+Credits to M. Moor for sharing his code from https://arxiv.org/abs/1902.01659
