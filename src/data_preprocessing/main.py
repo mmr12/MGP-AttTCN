@@ -1,18 +1,19 @@
 import os
 import sys
 import pandas as pd
+import argparse
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir))
 sys.path.append(head)
 
 from src.data_preprocessing.extract_MIMIC_data.extract_labels.make_labels import make_labels
-from scr.data_preprocessing.extract_MIMIC_data.extract_features.make_data import MakeData
-from scr.data_preprocessing.extract_MIMIC_data.extract_features.match_controls import match_controls
-from scr.data_preprocessing.features_preprocessing.stepI_data_prep import DataPreprocessing
-from scr.data_preprocessing.features_preprocessing.stepII_split_sets_n_normalise import MakeSetsAndNormalise
-from scr.data_preprocessing.features_preprocessing.stepIII_GP_prep import CompactTransform
-from scr.data_preprocessing.features_preprocessing.stepIV_GP_prep_part_II import GPPreprocessingSecondRound
+from src.data_preprocessing.extract_MIMIC_data.extract_features.make_data import MakeData
+from src.data_preprocessing.extract_MIMIC_data.extract_features.match_controls import match_controls
+from src.data_preprocessing.features_preprocessing.stepI_data_prep import DataPreprocessing
+from src.data_preprocessing.features_preprocessing.stepII_split_sets_n_normalise import MakeSetsAndNormalise
+from src.data_preprocessing.features_preprocessing.stepIII_GP_prep import CompactTransform
+from src.data_preprocessing.features_preprocessing.stepIV_GP_prep_part_II import GPPreprocessingSecondRound
 
 def make_dirs():
     data_path = os.path.join(head, 'data')
@@ -31,7 +32,9 @@ def main(args):
     make_dirs()
 
     # generate sepsis labels
-    labels = make_labels()
+    labels = make_labels(args.sqluser, args.sqlpass, args.host,
+                         args.dbname, args.schema_write_name, 
+                         args.schema_read_name, args.path)
     labels.generate_SI_data()
     labels.generate_SOFA_data()
     labels.generate_all_sepsis_onset()
@@ -40,7 +43,8 @@ def main(args):
     labels.generate_sofa_delta_table()
 
     # generate data to feed in model 
-    data = MakeData()
+    data = MakeData(args.sqluser, args.schema_write_name, 
+                    args.schema_read_name) # TODO: add remaining dependencies 
     data.step1_cohort()
     match_controls()
     data.step3_match_controls_to_sql()
@@ -56,33 +60,34 @@ def main(args):
              "control_55h_hourly_vitals_ex1c.csv",
              "case_55h_hourly_labs_ex1c.csv",
              "control_55h_hourly_labs_ex1c.csv"]
-    cas_f = os.path.join(path, files[1])
-    cos_f = os.path.join(path, files[2])
-    cav_f = os.path.join(path, files[3])
-    cov_f = os.path.join(path, files[4])
-    cal_f = os.path.join(path, files[5])
-    col_f = os.path.join(path, files[6])
-    t_print("Initialising")
+    cas_f = os.interim_path.join(interim_path, files[1])
+    cos_f = os.interim_path.join(interim_path, files[2])
+    cav_f = os.interim_path.join(interim_path, files[3])
+    cov_f = os.interim_path.join(interim_path, files[4])
+    cal_f = os.interim_path.join(interim_path, files[5])
+    col_f = os.interim_path.join(interim_path, files[6])
+
+    print("Initialising", flush=True)
     first_processing = DataPreprocessing(cas_f, cos_f, cav_f, cov_f, cal_f, col_f,)
-    t_print("load_static")
+    print("load_static", flush=True)
     first_processing.load_static()
-    t_print("load_labs")
+    print("load_labs", flush=True)
     first_processing.load_labs()
-    t_print("load_vitals")
+    print("load_vitals", flush=True)
     first_processing.load_vitals()
-    t_print("dropping unnamed columns")
+    print("dropping unnamed columns", flush=True)
     first_processing.drop_all_unnamed()
-    t_print("get onset 4 all")
+    print("get onset 4 all", flush=True)
     first_processing.get_onset_hour()
-    t_print("merge l & v")
+    print("merge l & v", flush=True)
     first_processing.merge_labs_vitals()
-    t_print("filter")
+    print("filter", flush=True)
     first_processing.filter_time_window()
-    t_print("merge ca & co")
+    print("merge ca & co", flush=True)
     first_processing.merge_case_control()
-    t_print("check ts lengths")
+    print("check ts lengths", flush=True)
     first_processing.ts_length_checks()
-    t_print("static_prep")
+    print("static_prep", flush=True)
     first_processing.static_prep()
 
     # normalise, separate sets
@@ -115,19 +120,18 @@ def main(args):
 
 def parse_arg():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--sqluser",
+    parser.add_argument("-u", "--sqluser", default='mrosnat',
                         help="SQL user")
-    parser.add_argument("-pw", "--sqlpass",
+    parser.add_argument("-pw", "--sqlpass", default='',
                         help="SQL user password. If none insert ''")
-    parser.add_argument("-h", "--host",
+    parser.add_argument("-h", "--host", default='lm-db-01.leomed.ethz.ch',
                         help="SQL host")
-    parser.add_argument("-db", "--dbname",
+    parser.add_argument("-db", "--dbname", default='mimic3',
                         help="SQL database name")
-    parser.add_argument("-r", "--schema_read_name",
+    parser.add_argument("-r", "--schema_read_name", default='mimic3',
                         help="SQL read/main schema name")
-    parser.add_argument("-w", "--schema_write_name",
-                        help="SQL write schema name (optional)", 
-                        default=None)
+    parser.add_argument("-w", "--schema_write_name", default='mimic3_mrosnati',
+                        help="SQL write schema name (optional)")
     return parser.parse_args()
 
 

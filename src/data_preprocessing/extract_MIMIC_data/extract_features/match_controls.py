@@ -22,8 +22,7 @@ Detailed Description:
     4. return result df as output
 '''
 
-import argparse
-import sys
+import os
 import time
 from datetime import datetime
 import numpy as np
@@ -32,7 +31,7 @@ cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir, os.pardir))
 
 
- def match_controls():
+def match_controls():
 
     np.random.seed(42)
     result = pd.DataFrame()
