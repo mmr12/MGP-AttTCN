@@ -14,13 +14,7 @@ from src.utils.debug import *
 
 class make_labels:
 
-    def __init__(self, 
-                 sqluser,
-                 sqlpass,
-                 host,
-                 dbname,
-                 schema_write_name,
-                 schema_read_name,
+    def __init__(self, connect_key="dbname=mimic user=postgres password=postgres options=--search_path=mimiciii",
                  path):
         """
         Initialise function
@@ -29,14 +23,7 @@ class make_labels:
         :param schema_read_name:    schema where mimic is saved
         """
         # specify user/password/where the database is
-        self.sqluser = sqluser
-        self.sqlpass = sqlpass
-        self.dbname = dbname
-        self.host = host
-        if schema_write_name is not None:
-            self.query_schema = 'SET search_path to ' + schema_write_name + ','+schema_read_name+';'
-        else:
-            self.query_schema = 'SET search_path to ' + schema_write_name + ';'
+        self.connect_key = connect_key
         self.path = path
 
 
@@ -252,10 +239,7 @@ class make_labels:
 
     def create_table(self, sqlfile):
         ##
-        conn = psycopg2.connect(dbname=self.dbname,
-                                user=self.sqluser,
-                                password=self.sqlpass,
-                               host=self.host)
+        conn = psycopg2.connect(self.connect_key)
         cur = conn.cursor()
         file = self.cwd + sqlfile
         with open(file, 'r') as openfile:
@@ -266,10 +250,7 @@ class make_labels:
         conn.close()
 
     def build_df(self, q_text):
-        con = psycopg2.connect(dbname=self.dbname,
-                               user=self.sqluser,
-                               password=self.sqlpass,
-                               host=self.host)
+        con = psycopg2.connect(self.connect_key)
         query = self.query_schema + q_text
         return pd.read_sql_query(query, con)
 

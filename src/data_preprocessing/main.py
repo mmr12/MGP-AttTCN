@@ -32,9 +32,7 @@ def main(args):
     make_dirs()
 
     # generate sepsis labels
-    labels = make_labels(args.sqluser, args.sqlpass, args.host,
-                         args.dbname, args.schema_write_name, 
-                         args.schema_read_name, args.path)
+    labels = make_labels(args.connect_key, args.path)
     labels.generate_SI_data()
     labels.generate_SOFA_data()
     labels.generate_all_sepsis_onset()
@@ -42,7 +40,7 @@ def main(args):
     labels.save_to_postgres()
     labels.generate_sofa_delta_table()
 
-    # generate data to feed in model 
+    # generate data to feed in model
     data = MakeData(args.sqluser, args.schema_write_name, 
                     args.schema_read_name) # TODO: add remaining dependencies 
     data.step1_cohort()
@@ -120,18 +118,13 @@ def main(args):
 
 def parse_arg():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--sqluser", default='mrosnat',
-                        help="SQL user")
-    parser.add_argument("-pw", "--sqlpass", default='',
-                        help="SQL user password. If none insert ''")
-    parser.add_argument("-h", "--host", default='lm-db-01.leomed.ethz.ch',
-                        help="SQL host")
-    parser.add_argument("-db", "--dbname", default='mimic3',
-                        help="SQL database name")
-    parser.add_argument("-r", "--schema_read_name", default='mimic3',
-                        help="SQL read/main schema name")
-    parser.add_argument("-w", "--schema_write_name", default='mimic3_mrosnati',
-                        help="SQL write schema name (optional)")
+    parser.add_argument("-c", "--connect_key",
+                        default="dbname=mimic user=postgres password=postgres options=--search_path=mimiciii",
+                        help="key to enter the DB, eg: 'dbname=mimic user=postgres password=postgres options=--search_path=mimiciii'")
+    parser.add_argument("-p", "--path", default="/cluster/home/mrosnat/MGP-AttTCN",
+                        help="path to data folder - where you would like to save your data")
+
+    
     return parser.parse_args()
 
 
