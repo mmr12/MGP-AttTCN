@@ -57,12 +57,12 @@ def main(args):
              "control_55h_hourly_vitals_ex1c.csv",
              "case_55h_hourly_labs_ex1c.csv",
              "control_55h_hourly_labs_ex1c.csv"]
-    cas_f = os.interim_path.join(interim_path, files[1])
-    cos_f = os.interim_path.join(interim_path, files[2])
-    cav_f = os.interim_path.join(interim_path, files[3])
-    cov_f = os.interim_path.join(interim_path, files[4])
-    cal_f = os.interim_path.join(interim_path, files[5])
-    col_f = os.interim_path.join(interim_path, files[6])
+    cas_f = os.path.join(interim_path, files[1])
+    cos_f = os.path.join(interim_path, files[2])
+    cav_f = os.path.join(interim_path, files[3])
+    cov_f = os.path.join(interim_path, files[4])
+    cal_f = os.path.join(interim_path, files[5])
+    col_f = os.path.join(interim_path, files[6])
 
     print("Initialising", flush=True)
     first_processing = DataPreprocessing(cas_f, cos_f, cav_f, cov_f, cal_f, col_f,)
@@ -75,6 +75,7 @@ def main(args):
     print("dropping unnamed columns", flush=True)
     first_processing.drop_all_unnamed()
     print("get onset 4 all", flush=True)
+    # TODO this breaks
     first_processing.get_onset_hour()
     print("merge l & v", flush=True)
     first_processing.merge_labs_vitals()
