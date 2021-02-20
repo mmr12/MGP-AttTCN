@@ -39,7 +39,7 @@ def main(args):
     labels.filter_first_sepsis_onset()
     labels.save_to_postgres()
     labels.generate_sofa_delta_table()
-
+    return 0
     # generate data to feed in model
     data = MakeData(args.sqluser, args.schema_write_name, 
                     args.schema_read_name) # TODO: add remaining dependencies 
@@ -119,7 +119,7 @@ def main(args):
 def parse_arg():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--connect_key",
-                        default="dbname=mimic user=postgres password=postgres options=--search_path=mimiciii",
+                        default="dbname=mimic user=postgres password=postgres host=localhost options=--search_path=mimiciii",
                         help="key to enter the DB, eg: 'dbname=mimic user=postgres password=postgres options=--search_path=mimiciii'")
     parser.add_argument("-p", "--path", default="/cluster/home/mrosnat/MGP-AttTCN",
                         help="path to data folder - where you would like to save your data")

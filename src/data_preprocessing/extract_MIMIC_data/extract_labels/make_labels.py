@@ -15,7 +15,7 @@ from src.utils.debug import *
 class make_labels:
 
     def __init__(self, connect_key="dbname=mimic user=postgres password=postgres options=--search_path=mimiciii",
-                 path):
+                 path='/cluster//home/mrosnat/MGP-AttTCN'):
         """
         Initialise function
         :param sqluser:             user name
@@ -25,7 +25,8 @@ class make_labels:
         # specify user/password/where the database is
         self.connect_key = connect_key
         self.path = path
-
+        self.cwd = cwd
+        print('working outof the assumption that cwd is ', self.cwd)
 
     def generate_all_sepsis_onset(self):
         """
@@ -245,12 +246,12 @@ class make_labels:
         with open(file, 'r') as openfile:
             query = openfile.read()
         openfile.close()
-        cur.execute(self.query_schema + query)
+        cur.execute(query)
         conn.commit()
         conn.close()
 
     def build_df(self, q_text):
         con = psycopg2.connect(self.connect_key)
-        query = self.query_schema + q_text
+        query = q_text
         return pd.read_sql_query(query, con)
 
