@@ -17,7 +17,7 @@ class GPPreprocessingSecondRound:
         self.cwd = os.path.dirname(os.path.abspath(__file__))
         self.head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
         print('working out of the assumption that head is ', self.head)
-        self.path = os.path.join(self.head, "/data/", split)
+        self.path = os.path.join(self.head, "data", split)
 
     def load_files(self, features=None):
         if features is None:

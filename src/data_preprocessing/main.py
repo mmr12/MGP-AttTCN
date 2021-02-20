@@ -95,7 +95,7 @@ def main(args):
     sets_n_norm.load_data()
     try:
         sets_n_norm.load_split()
-    except:
+    except FileNotFoundError:
         sets_n_norm.split()
     sets_n_norm.normalise()
     sets_n_norm.save()
