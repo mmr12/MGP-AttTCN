@@ -19,6 +19,8 @@ class CompactTransform:
         self.onset_h = onset_h
         self.outpath = outpath
         self.cwd = os.path.dirname(os.path.abspath(__file__))
+        self.head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
+        print('working out of the assumption that head is ', self.head)
 
     def calculation(self, features=None):
         """
@@ -111,10 +113,9 @@ class CompactTransform:
 
     def save(self, features=None):
         if features is None:
-            path = os.path.abspath(os.path.join(self.cwd, os.pardir, os.pardir)) + "/data/" + \
-                   self.outpath + "/GP_prep.pkl"
+            path = os.path.join(self.head, 'data', self.outpath, "GP_prep.pkl")
         else:
-            path = head + "/data/" + self.outpath + "/GP_prep_{}.pkl".format(features)
+            path = os.path.join(self.head, 'data', self.outpath, "GP_prep_{}.pkl".format(features))
         with open(path, "wb") as f:
             pickle.dump(self.result, f)
 

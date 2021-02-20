@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 
 cwd = os.path.dirname(os.path.abspath(__file__))
-head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir,  os.pardir, os.pardir))
+head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir,  os.pardir))
 sys.path.append(head)
 
 """
@@ -25,6 +25,9 @@ class MakeSetsAndNormalise:
         self.var_data_path = final_data_var_path
         self.split_file = split_file
         self.new_split_file = new_split_file
+        self.cwd = os.path.dirname(os.path.abspath(__file__))
+        self.head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
+        print('working out of the assumption that head is ', self.head)
 
     def load_data(self):
         self.stat_data = pd.read_csv(self.stat_data_path)
@@ -35,7 +38,7 @@ class MakeSetsAndNormalise:
             self.var_data.drop(columns="Unnamed: 0")
 
     def split(self):
-        file = os.path.join(head, 'data', self.split_file)
+        file = os.path.join(self.head, 'data', self.split_file)
         all_icus = self.stat_data.icustay_id.unique().tolist()
         random.shuffle(all_icus)
         no_icus = len(all_icus)
@@ -49,7 +52,7 @@ class MakeSetsAndNormalise:
         f.close()
 
     def load_split(self):
-        file = head + "/data/" + self.split_file
+        file = os.path.join(self.head, 'data', self.split_file)
         with open(file, "rb") as f:
             self.sets = pickle.load(f)
 
@@ -61,7 +64,7 @@ class MakeSetsAndNormalise:
             "val": all_non_test_icus[len(self.sets['train']): len(self.sets['train']) + len(self.sets['val'])],
             "test": self.sets['test']
         }
-        file = os.path.join(head, 'data', self.new_split_file)
+        file = os.path.join(self.head, 'data', self.new_split_file)
         f = open(file, "wb")
         pickle.dump(self.new_sets, f)
         f.close()
@@ -88,7 +91,7 @@ class MakeSetsAndNormalise:
 
 
     def save(self, file_name=None):
-        path = os.path.join(head, 'data')
+        path = os.path.join(self.head, 'data')
         sets_names = ["train", "val", "test"]
         if file_name is None:
             full_static = "/full_static.csv"
@@ -103,5 +106,3 @@ class MakeSetsAndNormalise:
             self.var_data[self.var_data.icustay_id.isin(self.sets[set])].to_csv(path + set + full_labvitals)
 
 
-if __name__ == '__main__':
-    main()

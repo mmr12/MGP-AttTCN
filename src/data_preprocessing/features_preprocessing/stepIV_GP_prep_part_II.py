@@ -13,8 +13,11 @@ sys.path.append(head)
 
 class GPPreprocessingSecondRound:
     def __init__(self, split, n_features=44):
-        self.path = head + "/data/" + split
         self.n_features = n_features
+        self.cwd = os.path.dirname(os.path.abspath(__file__))
+        self.head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
+        print('working out of the assumption that head is ', self.head)
+        self.path = os.path.join(self.head, "/data/", split)
 
     def load_files(self, features=None):
         if features is None:
