@@ -4,7 +4,7 @@ CREATE materialized VIEW SOFA_PaO2FiO2 AS
 -- adding hadm_id to ventduations
 with vd as (
 select vd.* , ie.hadm_id
-from mimic3_mrosnati.ventdurations vd
+from ventdurations vd
 left join icustays ie
 on vd.icustay_id = ie.icustay_id
 )
@@ -45,6 +45,6 @@ select pf.hadm_id
 + round(date_part('minute', age(pf.charttime, ha.admittime))/60)) as HLOS
 
 from pafi1 pf
-left join mimic3.admissions ha
+left join admissions ha
   on ha.hadm_id = pf.hadm_id
 group by pf.hadm_id, HLOS

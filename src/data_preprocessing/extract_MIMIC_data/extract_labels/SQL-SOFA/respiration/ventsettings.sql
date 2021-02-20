@@ -16,8 +16,8 @@
 -- PART I
 
 -- First, create a temporary table to store relevant data from CHARTEVENTS.
-DROP MATERIALIZED VIEW IF EXISTS mimic3_mrosnati.ventsettings CASCADE;
-CREATE MATERIALIZED VIEW mimic3_mrosnati.ventsettings AS
+DROP MATERIALIZED VIEW IF EXISTS ventsettings CASCADE;
+CREATE MATERIALIZED VIEW ventsettings AS
 select
   icustay_id, charttime
   -- case statement determining whether it is an instance of mech vent
@@ -103,7 +103,7 @@ select
       end
       )
       as SelfExtubated
-from mimic3.chartevents ce
+from chartevents ce
 where ce.value is not null
 -- exclude rows marked as error
 and ce.error IS DISTINCT FROM 1
@@ -153,7 +153,7 @@ select
   , 0 as OxygenTherapy
   , 1 as Extubated
   , case when itemid = 225468 then 1 else 0 end as SelfExtubated
-from mimic3.procedureevents_mv
+from procedureevents_mv
 where itemid in
 (
   227194 -- "Extubation"

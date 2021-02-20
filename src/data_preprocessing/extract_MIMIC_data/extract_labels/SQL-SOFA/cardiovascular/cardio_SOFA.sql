@@ -44,7 +44,7 @@ with wt as	(
 , echo2 as (
 	select ha.hadm_id, avg(weight * 0.45359237) as weight
 	from admissions ha
-	left join mimic3_mrosnati.echodata echo
+	left join echodata echo
 		on ha.hadm_id = echo.hadm_id
 		and echo.charttime > ha.admittime - interval '7' day
 		and echo.charttime < ha.dischtime

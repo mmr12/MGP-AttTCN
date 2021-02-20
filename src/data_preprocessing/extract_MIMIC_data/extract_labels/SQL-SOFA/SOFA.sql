@@ -31,7 +31,7 @@ with scorecomp as (
 	, uo.running_uo_24h as UrineOutput24h
 	, rl.Creatinine
 
- 	from mimic3.admissions ha
+ 	from admissions ha
     left join (	
 	    select hadm_id, hlos from SOFA_PaO2FiO2 union
 	    select hadm_id, hlos from coag_labsperhour union

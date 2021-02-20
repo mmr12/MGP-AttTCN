@@ -16,8 +16,8 @@
 
 
 --DROP MATERIALIZED VIEW IF EXISTS VENTDURATIONS CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS mimic3_mrosnati.VENTDURATIONS CASCADE;
-create MATERIALIZED VIEW mimic3_mrosnati.ventdurations as
+DROP MATERIALIZED VIEW IF EXISTS VENTDURATIONS CASCADE;
+create MATERIALIZED VIEW ventdurations as
 with vd0 as
 (
   select
@@ -33,7 +33,7 @@ with vd0 as
     , OxygenTherapy
     , Extubated
     , SelfExtubated
-  from mimic3_mrosnati.ventsettings
+  from ventsettings
 )
 , vd1 as
 (
