@@ -26,6 +26,17 @@ class make_labels:
         self.connect_key = connect_key
         self.path = path
         self.cwd = cwd
+        self.dbname = connect_key.rsplit('dbname=')[1].rsplit(' ')[0]
+        self.user = connect_key.rsplit('user=')[1].rsplit(' ')[0]
+        self.password = connect_key.rsplit('password=')[1].rsplit(' ')[0]
+        try:
+            self.host = connect_key.rsplit('host=')[1].rsplit(' ')[0]
+        except:
+            self.host = 'localhost'
+        try:
+            self.port = connect_key.rsplit('port=')[1].rsplit(' ')[0]
+        except:
+            self.port = str(5432)
         print('working outof the assumption that cwd is ', self.cwd)
 
     def generate_all_sepsis_onset(self):
@@ -100,17 +111,16 @@ class make_labels:
         self.sofa_within_si.to_csv(path + "19-06-12-sepsis_onsets.csv")
 
     def save_to_postgres(self):
-        engine = create_engine('postgresql+psycopg2://{0}:{1}@{2}:5432/mimic3'.format(self.sqluser,
-                                                                                      self.sqlpass,
-                                                                                      self.host))
+        engine = create_engine('postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'.format(self.user,
+                                                                                      self.password,
+                                                                                      self.host,
+                                                                                      self.port,
+                                                                                      self.dbname))
         self.sofa_within_si.rename(columns={"sofa_delta": "delta_score"}, inplace=True)
         # somehow we cannot overwrite tables directly with "to_sql" so let's do that before
-        conn = psycopg2.connect(dbname=self.dbname,
-                                user=self.sqluser,
-                                password=self.sqlpass,
-                                host=self.host)
+        conn = psycopg2.connect(self.connect_key)
         cur = conn.cursor()
-        cur.execute(self.query_schema + "drop table IF EXISTS sepsis_onset cascade")
+        cur.execute("drop table IF EXISTS sepsis_onset cascade")
         conn.commit()
         # now let's fill it again
         self.sofa_within_si[['hadm_id',
@@ -129,7 +139,7 @@ class make_labels:
             .to_sql("sepsis_onset",
                     engine,
                     if_exists='append',
-                    schema="mimic3_mrosnati",
+                    schema="mimiciii",
                     dtype={"hadm_id": Integer(),
                            "sofa": Integer(),
                            'sofaresp': Integer(),
