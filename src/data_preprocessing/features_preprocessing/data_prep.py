@@ -1,7 +1,6 @@
 import os
 import sys
 from datetime import datetime
-
 import numpy as np
 import pandas as pd
 
@@ -47,6 +46,8 @@ class DataPreprocessing:
         self.case_labs_file = cal_f
         self.control_labs_file = col_f
         self.cwd = os.path.dirname(os.path.abspath(__file__))
+        self.head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
+        print('working out of the assumption that head is ', self.head)
 
     def drop_unnamed(self, df):
         if "Unnamed: 0" in df.columns:
@@ -61,7 +62,7 @@ class DataPreprocessing:
         """
         for t in columns:  # convert string (of times) to datetime objects
             df[t] = df[t].apply(str)
-            df[t] = df[t].apply(lambda x: datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S"))
+            df[t] = df[t].apply(lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S"))
 
     def load_static(self):
         self.case_static = pd.read_csv(self.case_static_file)
@@ -117,7 +118,7 @@ class DataPreprocessing:
             new_cols = {x: y for x, y in zip(dataset.columns, self.onset_hours.columns)}
             dataset = dataset.rename(columns=new_cols)
             self.onset_hours = self.onset_hours.append(dataset, sort=False)
-        path = os.path.join(head, 'data', 'processed')
+        path = os.path.join(self.head, 'data', 'processed')
         file = "onset_hours.csv"
         self.onset_hours.to_csv(os.path.join(path, file), index=False)
 
@@ -160,7 +161,7 @@ class DataPreprocessing:
         self.full_labvitals = self.full_labvitals.reset_index(drop=True)
 
         # save
-        path = os.path.join(head, 'data', 'interim')
+        path = os.path.join(self.head, 'data', 'interim')
         if file_name is None:
             file = "full_labvitals_horizon_{}.csv".format(self.horizon)
         else:
@@ -183,7 +184,7 @@ class DataPreprocessing:
         if self.max_length:
             to_drop = self.full_labvitals.loc[self.full_labvitals.chart_time > self.max_length, "icustay_id"].tolist()
             self.full_labvitals = self.full_labvitals[~self.full_labvitals.icustay_id.isin(to_drop)]
-        path = os.path.join(head, 'data', 'processed')
+        path = os.path.join(self.head, 'data', 'processed')
         if file_name is None:
             file = "full_labvitals_horizon_{}_last.csv".format(self.horizon)
         else:
@@ -217,7 +218,7 @@ class DataPreprocessing:
         # create one-hot vector
         self.full_static = pd.get_dummies(all_stats[static_vars[1:]])
         self.full_static.insert(loc=0, column='icustay_id', value=all_stats.icustay_id.tolist())
-        path = os.path.join(head, 'data', 'processed')
+        path = os.path.join(self.head, 'data', 'processed')
         file = "full_static.csv"
         self.full_static.to_csv(os.path.join(path, file), index=False)
 
@@ -228,7 +229,7 @@ class DataPreprocessing:
         self.full_static = pd.get_dummies(all_stats[static_vars[2:]])
         self.full_static.insert(loc=0, column='admission_age', value=all_stats.admission_age.tolist())
         self.full_static.insert(loc=0, column='icustay_id', value=all_stats.icustay_id.tolist())
-        path = os.path.join(head, 'data', 'processed')
+        path = os.path.join(self.head, 'data', 'processed')
         file = "full_static_mr_features.csv"
         self.full_static.to_csv(os.path.join(path, file), index=False)
 
