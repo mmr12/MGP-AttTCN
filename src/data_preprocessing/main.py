@@ -39,10 +39,9 @@ def main(args):
     labels.filter_first_sepsis_onset()
     labels.save_to_postgres()
     labels.generate_sofa_delta_table()
-    return 0
+
     # generate data to feed in model
-    data = MakeData(args.sqluser, args.schema_write_name, 
-                    args.schema_read_name) # TODO: add remaining dependencies 
+    data = MakeData(args.connect_key)
     data.step1_cohort()
     match_controls()
     data.step3_match_controls_to_sql()

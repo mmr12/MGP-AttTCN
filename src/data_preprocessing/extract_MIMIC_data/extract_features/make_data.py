@@ -12,11 +12,10 @@ sys.path.append(head)
 from src.utils.debug import *
 
 
+
 class MakeData:
 
-    def __init__(self, sqluser='mrosnati',
-                 schema_write_name='mimic3_mrosnati',
-                 schema_read_name='mimic3'):
+    def __init__(self, connect_key="dbname=mimic user=postgres host=localhost password=postgres options=--search_path=mimiciii",):
         """
         Initialise function
         :param sqluser:             user name
@@ -24,38 +23,42 @@ class MakeData:
         :param schema_read_name:    schema where mimic is saved
         """
         # specify user/password/where the database is
-        self.sqluser = sqluser
-        self.sqlpass = ''
-        self.dbname = 'mimic3'
-        self.host = 'lm-db-01.leomed.ethz.ch'
-        self.query_schema = 'SET search_path to ' + schema_write_name + ',' + schema_read_name + ';'
-        self.cwd = os.path.dirname(os.path.abspath(__file__))
-        self.engine = create_engine('postgresql+psycopg2://{0}:{1}@{2}:5432/mimic3'.format(self.sqluser,
-                                                                                           self.sqlpass,
-                                                                                           self.host))
+        self.connect_key = connect_key
+        self.cwd = cwd
+        self.dbname = connect_key.rsplit('dbname=')[1].rsplit(' ')[0]
+        self.user = connect_key.rsplit('user=')[1].rsplit(' ')[0]
+        self.password = connect_key.rsplit('password=')[1].rsplit(' ')[0]
+        try:
+            self.host = connect_key.rsplit('host=')[1].rsplit(' ')[0]
+        except:
+            self.host = 'localhost'
+        try:
+            self.port = connect_key.rsplit('port=')[1].rsplit(' ')[0]
+        except:
+            self.port = str(5432)
+        print('working out of the assumption that cwd is ', self.cwd)
+
+        self.engine = create_engine('postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}'.format(self.user,
+                                                                                      self.password,
+                                                                                      self.host,
+                                                                                      self.port,
+                                                                                      self.dbname))
 
     def create_table(self, sqlfile):
-        ##
-        conn = psycopg2.connect(dbname=self.dbname,
-                                user=self.sqluser,
-                                password=self.sqlpass,
-                                host=self.host)
+        conn = psycopg2.connect(self.connect_key)
         cur = conn.cursor()
         file = self.cwd + sqlfile
         with open(file, 'r') as openfile:
             query = openfile.read()
         openfile.close()
-        cur.execute(self.query_schema + query)
+        cur.execute(query)
         conn.commit()
         conn.close()
 
     def build_df(self, q_text):
-        con = psycopg2.connect(dbname=self.dbname,
-                               user=self.sqluser,
-                               password=self.sqlpass,
-                               host=self.host)
-        query = self.query_schema + q_text
-        return pd.read_sql_query(query, con)
+        conn = psycopg2.connect(self.connect_key)
+        query = q_text
+        return pd.read_sql_query(query, conn)
 
     def step1_cohort(self):
         t_print("welcome to step1")
@@ -95,17 +98,14 @@ class MakeData:
                  }
         t_print("saving to SQL...")
         # somehow we cannot overwrite tables directly with "to_sql" so let's do that before
-        conn = psycopg2.connect(dbname=self.dbname,
-                                user=self.sqluser,
-                                password=self.sqlpass,
-                                host=self.host)
+        conn = psycopg2.connect(self.connect_key)
         cur = conn.cursor()
-        cur.execute(self.query_schema + "drop table IF EXISTS matched_controls_hourly cascade")
+        cur.execute("drop table IF EXISTS matched_controls_hourly cascade")
         conn.commit()
         mc[mc.columns].to_sql("matched_controls_hourly",
                               self.engine,
                               if_exists='append',
-                              schema="mimic3_mrosnati",
+                              schema="mimiciii",
                               dtype=types)
         t_print("saved")
 

@@ -37,7 +37,7 @@ class make_labels:
             self.port = connect_key.rsplit('port=')[1].rsplit(' ')[0]
         except:
             self.port = str(5432)
-        print('working outof the assumption that cwd is ', self.cwd)
+        print('working out of the assumption that cwd is ', self.cwd)
 
     def generate_all_sepsis_onset(self):
         """
