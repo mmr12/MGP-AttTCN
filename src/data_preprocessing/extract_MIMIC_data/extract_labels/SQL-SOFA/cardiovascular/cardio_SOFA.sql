@@ -19,8 +19,8 @@ with wt as	(
 	        else null
 	        end) as weight
 
- 	from mimic3.admissions ha
-	left join mimic3.chartevents c
+ 	from admissions ha
+	left join chartevents c
 		on ha.hadm_id = c.hadm_id
 	where valuenum is not null
 	and valuenum != 0
@@ -43,7 +43,7 @@ with wt as	(
 -- calculate weight indirectly through echography weight
 , echo2 as (
 	select ha.hadm_id, avg(weight * 0.45359237) as weight
-	from mimic3.admissions ha
+	from admissions ha
 	left join mimic3_mrosnati.echodata echo
 		on ha.hadm_id = echo.hadm_id
 		and echo.charttime > ha.admittime - interval '7' day
@@ -70,7 +70,7 @@ with wt as	(
 		+ round(date_part('minute', age(cv.charttime, ha.admittime ))/60)) as HLOS
 
   	from admissions ha
- 	inner join mimic3.inputevents_cv cv
+ 	inner join inputevents_cv cv
  		on ha.hadm_id = cv.hadm_id
  		and cv.charttime between ha.admittime  - interval '1' day and ha.dischtime
  	left join wt
@@ -93,8 +93,8 @@ with wt as	(
   + date_part('day', age(mv.starttime, ha.admittime))* 24
   + date_part('hour', age(mv.starttime, ha.admittime))
   + round(date_part('minute', age(mv.starttime, ha.admittime))/60)) as HLOS
-    from mimic3.admissions ha
-    inner join mimic3.inputevents_mv mv
+    from admissions ha
+    inner join inputevents_mv mv
     	on ha.hadm_id = mv.hadm_id
     	and mv.starttime between ha.admittime - interval '1' day and ha.dischtime
     where itemid in (221906,221289,221662,221653)

@@ -30,9 +30,9 @@ FROM
     + date_part('hour', age(le.charttime, ha.admittime))
     + round(date_part('minute', age(le.charttime, ha.admittime))/60)) as HLOS
 
-  FROM mimic3.admissions ha
+  FROM admissions ha
 
-  LEFT JOIN mimic3.labevents le
+  LEFT JOIN labevents le
     ON le.hadm_id = ha.hadm_id
     AND le.charttime BETWEEN (ha.admittime - interval '1' day) AND ha.dischtime
     AND le.ITEMID in

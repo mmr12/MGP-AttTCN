@@ -20,8 +20,8 @@ FROM  (
     + date_part('day', age(ce.charttime, ha.admittime))* 24
     + date_part('hour', age(ce.charttime, ha.admittime))
     + round(date_part('minute', age(ce.charttime, ha.admittime))/60)) as HLOS
-  from mimic3.admissions ha
-  left join mimic3.chartevents ce
+  from admissions ha
+  left join chartevents ce
   on ha.subject_id = ce.subject_id and ha.hadm_id = ce.hadm_id
   AND ce.charttime BETWEEN (ha.admittime - interval '1' day) AND ha.dischtime
   -- exclude rows marked as error

@@ -28,12 +28,12 @@ select
     + date_part('hour', age(oe.charttime, ie.intime))
     + round(date_part('minute', age(oe.charttime, ie.intime))/60)) as ICULOS
 
-from mimic3.admissions ha
+from admissions ha
 -- Join to the outputevents table to get urine output
-left join mimic3.outputevents oe
+left join outputevents oe
 -- join on all patient identifiers
 on ha.subject_id = oe.subject_id and ha.hadm_id = oe.hadm_id
-left join mimic3.icustays ie
+left join icustays ie
   on ie.icustay_id = oe.icustay_id
 -- and ensure the data occurs during the first day
 and oe.charttime between (ha.admittime - interval '1' day) AND ha.dischtime

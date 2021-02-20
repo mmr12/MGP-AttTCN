@@ -64,10 +64,10 @@ with base as
     as VALUENUM
   , l.CHARTTIME
   
-  from mimic3.CHARTEVENTS l
+  from CHARTEVENTS l
 
   -- get intime for charttime subselection
-  inner join mimic3.admissions ha
+  inner join admissions ha
     on l.hadm_id = ha.hadm_id
 
   -- Isolate the desired GCS variables
@@ -129,7 +129,7 @@ select ha.hadm_id
     + date_part('day', age(gs.charttime, ha.admittime))* 24
     + date_part('hour', age(gs.charttime, ha.admittime))
     + round(date_part('minute', age(gs.charttime, ha.admittime))/60)) as HLOS
-from mimic3.admissions ha
+from admissions ha
 left join gcs gs
   on ha.hadm_id = gs.hadm_id
 group by ha.hadm_id, HLOS

@@ -4,8 +4,8 @@ SELECT
 uo_1.hadm_id, uo_1.HLOS
 
 , SUM(uo_4.UrineOutput)  as running_uo_24h
-FROM mimic3_mrosnati.SOFA_uoperhour uo_1
-JOIN mimic3_mrosnati.SOFA_uoperhour uo_4 ON
+FROM SOFA_uoperhour uo_1
+JOIN SOFA_uoperhour uo_4 ON
     uo_1.hadm_id = uo_4.hadm_id and
     uo_4.HLOS between uo_1.HLOS -24 and uo_1.HLOS
 
