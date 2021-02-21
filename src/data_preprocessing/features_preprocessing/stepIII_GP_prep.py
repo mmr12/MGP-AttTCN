@@ -22,7 +22,7 @@ class CompactTransform:
         self.head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
         print('working out of the assumption that head is ', self.head)
 
-    def calculation(self, features=None):
+    def calculation(self):
         """
         ids                  - ids //
         values               - array of list of observations
@@ -37,24 +37,10 @@ class CompactTransform:
         onset_hour           - duh
         """
         # reformatting self.data so that all numeric values are in one column and a new column indicates the var_id
-        if features is None:
-            variables = ['sysbp', 'diabp', 'meanbp', 'resprate', 'heartrate',
-                         'spo2_pulsoxy', 'tempc', 'cardiacoutput', 'tvset', 'tvobserved',
-                         'tvspontaneous', 'peakinsppressure', 'totalpeeplevel', 'o2flow', 'fio2',
-                         'albumin', 'bands', 'bicarbonate', 'bilirubin', 'creatinine',
-                         'chloride', 'glucose', 'hematocrit', 'hemoglobin', 'lactate',
-                         'platelet', 'potassium', 'ptt', 'inr', 'pt', 'sodium', 'bun', 'wbc',
-                         'creatinekinase', 'ck_mb', 'fibrinogen', 'ldh', 'magnesium',
-                         'calcium_free', 'po2_bloodgas', 'ph_bloodgas', 'pco2_bloodgas',
-                         'so2_bloodgas', 'troponin_t']
-
-        elif features == 'mr_features':
-            variables = ['sysbp', 'diabp', 'meanbp', 'resprate', 'heartrate', 'spo2_pulsoxy',
+        variables = ['sysbp', 'diabp', 'meanbp', 'resprate', 'heartrate', 'spo2_pulsoxy',
                          'tempc', 'bicarbonate', 'creatinine', 'chloride', 'glucose',
                          'hematocrit', 'hemoglobin', 'lactate', 'platelet', 'potassium', 'ptt',
                          'inr', 'pt', 'sodium', 'bun', 'wbc', 'magnesium', 'ph_bloodgas']
-        else:
-            return 1
 
         # initialise
         var_id = len(variables)

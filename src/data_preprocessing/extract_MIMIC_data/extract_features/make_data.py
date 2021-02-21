@@ -110,7 +110,7 @@ class MakeData:
         t_print("saved")
 
     def step4_extract_data(self):
-
+        # read all SQL files
         files = ["/extract-55h-of-hourly-case-vital-series_ex1c.sql",
                  "/extract-55h-of-hourly-control-vital-series_ex1c.sql",
                  "/extract-55h-of-hourly-case-lab-series_ex1c.sql",
@@ -120,51 +120,22 @@ class MakeData:
             print_time()
             t_print(file)
             self.create_table(file)
-
         path = os.path.join(head, 'data', 'interim')
 
-        q = ["select * from icustay_static",
+        # save static files
+        queries = ["select * from icustay_static",
              "select * from icustay_static st inner join cases_hourly_ex1c ch on st.icustay_id=ch.icustay_id",
-             "select * from icustay_static st inner join matched_controls_hourly ch on st.icustay_id=ch.icustay_id",
-             "select * from case_55h_hourly_vitals_ex1c cv order by cv.icustay_id, cv.chart_time",
-             "select * from control_55h_hourly_vitals_ex1c cv order by cv.icustay_id, cv.chart_time",
-             "select * from case_55h_hourly_labs_ex1c cl order by cl.icustay_id, cl.chart_time",
-             "select * from control_55h_hourly_labs_ex1c cl order by cl.icustay_id, cl.chart_time"
-             ]
+             "select * from icustay_static st inner join matched_controls_hourly ch on st.icustay_id=ch.icustay_id",]
         files = ["static_variables.csv",
                  "static_variables_cases.csv",
-                 "static_variables_controls.csv",
-                 "case_55h_hourly_vitals_ex1c.csv",
-                 "control_55h_hourly_vitals_ex1c.csv",
-                 "case_55h_hourly_labs_ex1c.csv",
-                 "control_55h_hourly_labs_ex1c.csv"]
-
-        # first do static files
-        for i in range(3):
+                 "static_variables_controls.csv", ]
+        for q, f in zip(queries, files):
             print_time()
-            t_print(files[i])
-            self.build_df(q[i]).to_csv(os.path.join(path, files[i]))
+            t_print(f)
+            self.build_df(q).to_csv(os.path.join(path, f))
 
-        # then do data extraction: group together all readings per timestamp
-        for i in range(3, len(files)):
-            print_time()
-            t_print(files[i])
-            temp = self.build_df(q[i])
-            temp.groupby(["icustay_id", "chart_time"], as_index=False).mean().to_csv(os.path.join(path, files[i]))
-
-    def step4_extract_MR_data(self):
-        files = ["/extract-55h-of-hourly-case-vital-series_ex1c.sql",
-                 "/extract-55h-of-hourly-control-vital-series_ex1c.sql",
-                 "/extract-55h-of-hourly-case-lab-series_ex1c.sql",
-                 "/extract-55h-of-hourly-control-lab-series_ex1c.sql",
-                 "/static-query.sql"]
-        for file in files:
-            print_time()
-            t_print(file)
-            self.create_table(file)
-
-        path = os.path.join(head, 'data', 'interim')
-        q = ["""select 
+        # save time series files
+        queries = ["""select 
                   icustay_id
                 , subject_id
                 , chart_time
@@ -238,15 +209,15 @@ class MakeData:
                 from control_55h_hourly_labs_ex1c cl order by cl.icustay_id, cl.chart_time"""
              ]
 
-        files = ["case_55h_hourly_vitals_mr_features.csv",
-                 "control_55h_hourly_vitals_mr_features.csv",
-                 "case_55h_hourly_labs_mr_features.csv",
-                 "control_55h_hourly_labs_mr_features.csv"]
+        files = ["vital_variables_cases.csv",
+                 "vital_variables_controls.csv",
+                 "lab_variables_cases.csv",
+                 "lab_variables_controls.csv",]
 
         # then do data extraction: group together all readings per timestamp
-        for i in range(len(files)):
+        for q, f in zip(queries, files):
             print_time()
-            t_print(files[i])
-            temp = self.build_df(q[i])
-            temp.groupby(["icustay_id", "chart_time"], as_index=False).mean().to_csv(os.path.join(path, files[i]))
+            t_print(f)
+            temp = self.build_df(q)
+            temp.groupby(["icustay_id", "chart_time"], as_index=False).mean().to_csv(os.path.join(path, f))
 
