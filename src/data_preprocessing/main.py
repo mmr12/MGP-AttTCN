@@ -46,17 +46,17 @@ def main(args):
     match_controls()
     data.step3_match_controls_to_sql()
     data.step4_extract_data()
-    data.step4_extract_MR_data()
 
     # merge extracted data, normalise TS length, run basic tests
     interim_path = os.path.join(head, 'data', 'interim')
     files = ["static_variables.csv",
              "static_variables_cases.csv",
              "static_variables_controls.csv",
-             "case_55h_hourly_vitals_ex1c.csv",
-             "control_55h_hourly_vitals_ex1c.csv",
-             "case_55h_hourly_labs_ex1c.csv",
-             "control_55h_hourly_labs_ex1c.csv"]
+             "vital_variables_cases.csv",
+             "vital_variables_controls.csv",
+             "lab_variables_cases.csv",
+             "lab_variables_controls.csv",]
+
     cas_f = os.path.join(interim_path, files[1])
     cos_f = os.path.join(interim_path, files[2])
     cav_f = os.path.join(interim_path, files[3])
