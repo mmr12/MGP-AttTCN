@@ -93,15 +93,15 @@ class MakeSetsAndNormalise:
         path = os.path.join(self.head, 'data')
         sets_names = ["train", "val", "test"]
         if file_name is None:
-            full_static = "/full_static.csv"
-            full_labvitals = "/full_labvitals.csv"
+            full_static = "full_static.csv"
+            full_labvitals = "full_labvitals.csv"
         else:
-            full_static = "/full_static_{}.csv".format(file_name)
-            full_labvitals = "/full_labvitals_{}.csv".format(file_name)
+            full_static = "full_static_{}.csv".format(file_name)
+            full_labvitals = "full_labvitals_{}.csv".format(file_name)
         for set in sets_names:
             if not os.path.exists(path + set):
                 os.makedirs(path + set)
-            self.stat_data[self.stat_data.icustay_id.isin(self.sets[set])].to_csv(path + set + full_static)
-            self.var_data[self.var_data.icustay_id.isin(self.sets[set])].to_csv(path + set + full_labvitals)
+            self.stat_data[self.stat_data.icustay_id.isin(self.sets[set])].to_csv(os.path.join(path, set, full_static))
+            self.var_data[self.var_data.icustay_id.isin(self.sets[set])].to_csv(os.path.join(path, set,  full_labvitals))
 
 
