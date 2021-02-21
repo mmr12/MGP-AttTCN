@@ -42,20 +42,20 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
 
         # covariance of medical features
         # enforcing positive definitiveness by using its cholesky decomposition
-        self.K_D_half_v_prior = self.add_variable(name="GP_features_kernel",
+        self.K_D_half_v_prior = self.add_weight(name="GP_features_kernel",
                                                   shape=[n_features, n_features],
                                                   initializer=K_vitals_initialiser,
                                                   trainable=True
                                                   )
 
-        self.K_D_half_l_prior = self.add_variable(name="GP_features_kernel",
+        self.K_D_half_l_prior = self.add_weight(name="GP_features_kernel",
                                                   shape=[n_features, n_features],
                                                   initializer=K_labs_initialiser,
                                                   trainable=True
                                                   )
 
         # noise associated to each feature reading
-        self.log_noises = self.add_variable(name="GP_log_noises",
+        self.log_noises = self.add_weight(name="GP_log_noises",
                                             shape=[n_features],
                                             initializer=tf.initializers.truncated_normal(mean=log_noise_mean,
                                                                                          stddev=log_noise_std),
@@ -63,14 +63,14 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
                                             )
 
         # time covariance kernel parameter
-        self.log_length_v = self.add_variable(name="GP_log_length",
+        self.log_length_v = self.add_weight(name="GP_log_length",
                                               shape=[1],
                                               initializer=tf.initializers.truncated_normal(mean=log_length_v_mean,
                                                                                            stddev=log_length_std),
                                               trainable=True
                                               )
 
-        self.log_length_l = self.add_variable(name="GP_log_length",
+        self.log_length_l = self.add_weight(name="GP_log_length",
                                               shape=[1],
                                               initializer=tf.initializers.truncated_normal(mean=log_length_l_mean,
                                                                                            stddev=log_length_std),
@@ -86,15 +86,15 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
     def variable_update(self):
         # K_D from K_D_half_prior
         # keep lower triangular part
-        self.K_D_v_half = tf.matrix_band_part(self.K_D_half_v_prior, -1, 0)
-        self.K_D_l_half = tf.matrix_band_part(self.K_D_half_l_prior, -1, 0)
+        self.K_D_v_half = tf.linalg.band_part(self.K_D_half_v_prior, -1, 0)
+        self.K_D_l_half = tf.linalg.band_part(self.K_D_half_l_prior, -1, 0)
         # multiply
         self.K_D_v = tf.matmul(self.K_D_v_half, tf.transpose(self.K_D_v_half))
         self.K_D_l = tf.matmul(self.K_D_l_half, tf.transpose(self.K_D_l_half))
 
         # D from log_noises
         noises = tf.exp(self.log_noises)
-        self.D = tf.diag(noises)
+        self.D = tf.linalg.diag(noises)
 
         # length from log_length
         self.length_v = tf.exp(self.log_length_v)
@@ -185,7 +185,7 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
         K_D__K_Ti = tf.multiply(K_D_v_big, K_Ti_v_big) + tf.multiply(K_D_l_big, K_Ti_l_big)
 
         D_big = kroneker_matrix(self.D, ind_K_Di)
-        D__I = tf.diag(tf.diag_part(D_big))
+        D__I = tf.linalg.diag(tf.linalg.diag_part(D_big))
 
         Sigma_prior = K_D__K_Ti + D__I + self.add_diag * tf.eye(tf.cast(D__I.shape[0], tf.int32))
 
@@ -213,13 +213,13 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
         # step III: inverse Sigma_prior
         L, num_tries = self.try_cholesky(Sigma_prior)
         if self.moor_data:
-            Mu = tf.matmul(K_D__K_XT, tf.cholesky_solve(L, tf.reshape(Yi, [-1, 1])))
+            Mu = tf.matmul(K_D__K_XT, tf.linalg.cholesky_solve(L, tf.reshape(Yi, [-1, 1])))
         else:
             Yi_reordered = tf.gather(Yi, ind_Ti)
-            Mu = tf.matmul(K_D__K_XT, tf.cholesky_solve(L, tf.reshape(Yi_reordered, [-1, 1])))
-        Sigma = K_D__K_Xi - tf.matmul(K_D__K_XT, tf.cholesky_solve(L, K_D__K_TX)) \
+            Mu = tf.matmul(K_D__K_XT, tf.linalg.cholesky_solve(L, tf.reshape(Yi_reordered, [-1, 1])))
+        Sigma = K_D__K_Xi - tf.matmul(K_D__K_XT, tf.linalg.cholesky_solve(L, K_D__K_TX)) \
                 + self.add_diag * tf.eye(tf.cast(tf.shape(K_D__K_Xi)[0], tf.int32))
-        epsilon = tf.random_normal((tf.shape(Xi)[0] * self.n_features, self.n_mc_samples))
+        epsilon = tf.random.normal((tf.shape(Xi)[0] * self.n_features, self.n_mc_samples))
         chol_Sigma, num_tries = self.try_cholesky(Sigma)
         draws = tf.matmul(chol_Sigma, epsilon) + Mu
 
@@ -232,23 +232,23 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
         try_no = 0
         try:
             try_no += 1
-            chol_sigma = tf.cholesky(Sigma)
+            chol_sigma = tf.linalg.cholesky(Sigma)
         except:
             t_print("Chol ill defined. New diag {}".format(self.add_diag * 11))
             Sigma = Sigma + self.add_diag * 10 * tf.eye(tf.cast(tf.shape(Sigma)[0], tf.int32))
             try:
                 try_no += 1
-                chol_sigma = tf.cholesky(Sigma)
+                chol_sigma = tf.linalg.cholesky(Sigma)
             except:
                 t_print("Chol ill defined. New diag {}".format(self.add_diag * 111))
                 Sigma = Sigma + self.add_diag * 10 * tf.eye(tf.cast(tf.shape(Sigma)[0], tf.int32))
                 try:
                     try_no += 1
-                    chol_sigma = tf.cholesky(Sigma)
+                    chol_sigma = tf.linalg.cholesky(Sigma)
                 except:
                     t_print("Chol ill defined. New diag {}".format(self.add_diag * 1111))
                     Sigma = Sigma + self.add_diag * 10 * tf.eye(tf.cast(tf.shape(Sigma)[0], tf.int32))
                     try_no += 1
-                    chol_sigma = tf.cholesky(Sigma)
+                    chol_sigma = tf.linalg.cholesky(Sigma)
 
         return chol_sigma, try_no

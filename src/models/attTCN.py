@@ -1,6 +1,7 @@
 import os
 import sys
-
+import tensorflow as tf
+from tensorflow import keras
 import numpy as np
 
 # appending head path

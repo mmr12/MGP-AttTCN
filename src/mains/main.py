@@ -15,7 +15,7 @@ from sacred import Experiment
 
 exp_name = 'GP_AttTCN'
 ex = Experiment(exp_name)
-tf.enable_eager_execution()
+#tf.enable_eager_execution()
 
 
 @ex.config
@@ -27,6 +27,9 @@ def my_config():
     n_features = 24  # old data: 44
     n_stat_features = 8  # old data: 35
     features = 'mr_features_mm_labels'
+    n_features=17
+    n_stat_features=7
+    features = None
     late_patients_only = False
     horizon0 = False
 
@@ -104,7 +107,7 @@ def main(
                          features=features)
 
     t_print("main - generate model and optimiser")
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     global_step = tf.Variable(0)
 
     # Load model

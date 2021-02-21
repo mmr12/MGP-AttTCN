@@ -31,11 +31,11 @@ def K_vitals_initialiser(shape, partition_info=None, dtype=None):
     # initialise lengths to be 0.01 for vitals and 5 for blood tests
     output = np.ones(shape[0])
     output[7:] = 0.01
-    return tf.diag(tf.convert_to_tensor(output, dtype=tf.float32))
+    return tf.linalg.diag(tf.convert_to_tensor(output, dtype=tf.float32))
 
 
 def K_labs_initialiser(shape, partition_info=None, dtype=None):
     # initialise lengths to be 0.01 for vitals and 5 for blood tests
     output = np.ones(shape[0])
     output[:7] = 0.01
-    return tf.diag(tf.convert_to_tensor(output, dtype=tf.float32))
+    return tf.linalg.diag(tf.convert_to_tensor(output, dtype=tf.float32))
