@@ -19,13 +19,10 @@ class GPPreprocessingSecondRound:
         print('working out of the assumption that head is ', self.head)
         self.path = os.path.join(self.head, "data", split)
 
-    def load_files(self, features=None):
-        if features is None:
-            file_path = self.path + "/GP_prep.pkl"
-            stat_file_path = self.path + "/full_static.csv"
-        else:
-            file_path = self.path + "/GP_prep_{}.pkl".format(features)
-            stat_file_path = self.path + "/full_static_{}.csv".format(features)
+    def load_files(self):
+
+        file_path = os.path.join(self.path, "GP_prep.pkl")
+        stat_file_path = os.path.join(self.path, "full_static.csv")
         with open(file_path, "rb") as f:
             self.data = pickle.load(f)
         self.static_data = pd.read_csv(stat_file_path)
@@ -45,11 +42,7 @@ class GPPreprocessingSecondRound:
         self.static_data = self.static_data.to_numpy()
         self.data.append(self.static_data)
 
-    def save(self, features=None):
-        if features is None:
-            file_path = self.path + "/GP_prep_v2.pkl"
-        else:
-            file_path = self.path + "/GP_prep_{}_v2.pkl".format(features)
-
+    def save(self):
+        file_path = os.path.join(self.path, "GP_prep_v2.pkl")
         with open(file_path, "wb") as f:
             pickle.dump(self.data, f)
