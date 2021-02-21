@@ -2,9 +2,9 @@ import argparse
 import os
 import pickle
 import sys
-
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 # appending head path
 cwd = os.path.dirname(os.path.abspath(__file__))
@@ -73,7 +73,7 @@ class CompactTransform:
         ind_lvs = []
         # rnn_grid_times       - hourly range to ceiling of end_time (grid times)
         rnn_grid_times = []
-        for i, x in enumerate(ids):
+        for i, x in tqdm(enumerate(ids)):
             if i % 300 == 0: t_print("id iteration {}".format(i))
             values.append(self.data.loc[self.data.icustay_id == x, "value"].tolist())
             times.append(self.data.loc[self.data.icustay_id == x, "chart_time"].tolist())
