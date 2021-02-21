@@ -2,6 +2,7 @@ import os
 import pickle
 import sys
 import tensorflow as tf
+import numpy as np
 
 # appending head path
 cwd = os.path.dirname(os.path.abspath(__file__))

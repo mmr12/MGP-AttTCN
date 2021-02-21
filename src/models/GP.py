@@ -3,6 +3,8 @@
 
 import os
 import sys
+import tensorflow as tf
+import numpy as np
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))

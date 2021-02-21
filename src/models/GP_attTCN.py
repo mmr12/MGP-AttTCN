@@ -1,6 +1,7 @@
 import os
 import sys
-
+import tensorflow as tf
+import numpy as np
 # appending head path
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
