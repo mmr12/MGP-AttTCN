@@ -194,38 +194,6 @@ class DataPreprocessing:
         self.full_labvitals.to_csv(os.path.join(path, file), index=False)
 
     def static_prep(self):
-        static_vars = ['icustay_id', 'gender', 'admission_age', 'ethnicity', 'first_careunit']
-        all_stats = self.case_static[static_vars].append(self.control_static[static_vars], sort=False)
-        # unify ethnicites
-        black = ['BLACK/AFRICAN AMERICAN', 'BLACK/CAPE VERDEAN', 'BLACK/AFRICAN', 'BLACK/HAITIAN']
-        white = ['WHITE', 'WHITE - RUSSIAN', 'WHITE - BRAZILIAN', 'PORTUGUESE']
-        asian = ['ASIAN', 'ASIAN - VIETNAMESE', 'ASIAN - CHINESE', 'ASIAN - CAMBODIAN',
-                 'ASIAN - ASIAN INDIAN', 'ASIAN - OTHER', 'ASIAN - FILIPINO']
-        hispanic = ['HISPANIC/LATINO - PUERTO RICAN', 'HISPANIC OR LATINO', 'HISPANIC/LATINO - SALVADORAN',
-                    'HISPANIC/LATINO - DOMINICAN', 'HISPANIC/LATINO - MEXICAN', 'HISPANIC/LATINO - GUATEMALAN']
-        notgiven = ['na', 'UNKNOWN/NOT SPECIFIED', 'UNABLE TO OBTAIN', 'PATIENT DECLINED TO ANSWER']
-        middleeastern = ['MIDDLE EASTERN']
-        other = ['NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER', 'OTHER', 'MULTI RACE ETHNICITY']
-        all_stats.loc[all_stats.ethnicity.isin(black), "ethnicity"] = 'black'
-        all_stats.loc[all_stats.ethnicity.isin(white), "ethnicity"] = 'white'
-        all_stats.loc[all_stats.ethnicity.isin(asian), "ethnicity"] = 'asian'
-        all_stats.loc[all_stats.ethnicity.isin(hispanic), "ethnicity"] = 'hispanic'
-        all_stats.loc[all_stats.ethnicity.isin(notgiven), "ethnicity"] = 'notgiven'
-        all_stats.loc[all_stats.ethnicity.isin(middleeastern), "ethnicity"] = 'middle eastern'
-        all_stats.loc[all_stats.ethnicity.isin(other), "ethnicity"] = 'other'
-        # unify ages
-        all_stats.admission_age = all_stats.admission_age.round(-1)
-        all_stats.loc[all_stats.admission_age > 90, "admission_age"] = 90
-        all_stats.admission_age = all_stats.admission_age.apply(str)
-        # create one-hot vector
-        self.full_static = pd.get_dummies(all_stats[static_vars[1:]])
-        self.full_static.insert(loc=0, column='icustay_id', value=all_stats.icustay_id.tolist())
-
-        file = "full_static.csv"
-        file_path = os.path.join(self.head, 'data', 'processed', file)
-        self.full_static.to_csv(file_path, index=False)
-
-    def mr_static_prep(self):
         static_vars = ['icustay_id', 'admission_age', 'gender', 'first_careunit']
         all_stats = self.case_static[static_vars].append(self.control_static[static_vars], sort=False)
         all_stats.loc[all_stats.admission_age > 90, "admission_age"] = 90
@@ -233,7 +201,7 @@ class DataPreprocessing:
         self.full_static.insert(loc=0, column='admission_age', value=all_stats.admission_age.tolist())
         self.full_static.insert(loc=0, column='icustay_id', value=all_stats.icustay_id.tolist())
 
-        file = "full_static_mr_features.csv"
+        file = "full_static.csv"
         file_path = os.path.join(self.head, 'data', 'processed', file)
         self.full_static.to_csv(file_path, index=False)
 
