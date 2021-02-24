@@ -117,8 +117,6 @@ class Trainer:
             self.data.apply_reshuffle()
 
             for batch in tqdm(range(self.no_batches)):
-                if batch % 5 == 0:
-                    t_print("Start of batch {}".format(batch))
                 # Load data
                 # batch_data = Y, T, ind_features, num_distinct_Y, X, num_distinct_X, static, labels, classes
                 batch_data = next(self.data.next_batch(self.batch_size, batch, late=self.late_patients_only,
