@@ -44,8 +44,8 @@ def my_config():
     num_layers = 4
     kernel_size = 3
     stride = 1
-    DO = [0.01] * num_layers
-    L2reg = [0.000001] * num_layers
+    DO = [0.01] * 10
+    L2reg = [0.000001] * 10
     sigmoid_beta = True
 
     # training
