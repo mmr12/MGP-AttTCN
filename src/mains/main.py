@@ -28,7 +28,7 @@ def my_config():
     n_stat_features = 8  # old data: 35
     features = 'mr_features_mm_labels'
     n_features=17
-    n_stat_features=7
+    n_stat_features=8
     features = None
     late_patients_only = False
     horizon0 = False
@@ -50,7 +50,7 @@ def my_config():
 
     # training
     learning_rate = 0.0005
-    batch_size = 16
+    batch_size = 32
     num_epochs = 6
 
 @ex.config

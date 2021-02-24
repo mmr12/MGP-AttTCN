@@ -10,7 +10,7 @@ def GP_loss(model, inputs, labels, weighted_loss=None):
         weights = float_y_star[:, 0] / weighted_loss + float_y_star[:, 1]
     else:
         weights = tf.convert_to_tensor([1], dtype=tf.float32)
-    return tf.losses.softmax_cross_entropy(y_star, out, weights=weights)
+    return tf.compat.v1.losses.softmax_cross_entropy(y_star, out, weights=weights)
 
 
 def grad(model, inputs, targets, ratio_weights=None, multi_class=True, GP=False, weighted_loss=None):
