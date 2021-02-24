@@ -28,8 +28,10 @@ class Trainer:
                  late_patients_only=False,
                  horizon0=False,
                  lab_vitals_only=False,
-                 weighted_loss=None):
+                 weighted_loss=None,
+                 save_file_name="/save_temp.pkl"):
 
+        self.save_path = head + save_file_name
         self.model = model
         self.data = data
         self.num_epochs = num_epochs
@@ -179,9 +181,9 @@ class Trainer:
                     _to_save = {"epoch": epoch,
                                 "y_hat": self.all_dev_y_hat,
                                 "weights": self.model.get_weights()}
-                    with open(head + "/save_temp.pkl", "wb") as f:
+                    with open(self.save_path, "wb") as f:
                         pickle.dump(_to_save, f)
-                    self._run.add_artifact(head + "/save_temp.pkl", "epoch_{}_dict.pkl".format(epoch))
+                    self._run.add_artifact(self.save_path, "epoch_{}_dict.pkl".format(epoch))
 
     def dev_eval(self, epoch, batch, dev_batch, step):
         if batch is not None:

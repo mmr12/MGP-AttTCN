@@ -94,7 +94,8 @@ def main(
         num_epochs,
         # sacred
         _run):
-    t_print("nu_layers: {}\tlr: {}\tMC samples :{}\tDO :{}\tL2 :{}\t kernel:{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size))   
+    t_print("nu_layers: {}\tlr: {}\tMC samples :{}\tDO :{}\tL2 :{}\t kernel:{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size))
+    save_name = "nl_{}_lr_{}_MC_{}_DO_{}_L2_{}_ker_{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size)
     # Load data
     data = DataGenerator(no_mc_samples=no_mc_samples,
                          max_no_dtpts=max_no_dtpts,
@@ -135,7 +136,8 @@ def main(
                       notebook_friendly=False,
                       eval_every=20,
                       late_patients_only=late_patients_only,
-                      horizon0=horizon0)
+                      horizon0=horizon0,
+                      save_file_name="/logs/{}.pkl".format(save_name))
 
     # train model
     trainer.run()

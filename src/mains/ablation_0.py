@@ -129,7 +129,8 @@ def main(
                       notebook_friendly=False,
                       eval_every=20,
                       late_patients_only=late_patients_only,
-                      horizon0=horizon0)
+                      horizon0=horizon0,
+                      save_file_name='/logs/ablation_0.pkl')
 
     # train model
     trainer.run()
