@@ -41,7 +41,7 @@ class GPLogReg:
 
         self.LogReg = tf.keras.Sequential(
             [tf.keras.layers.Dense(2,
-                                   input_shape=(time_window * n_features + n_stat_features),
+                                   input_shape=(time_window * n_features + n_stat_features,),
                                    kernel_regularizer=tf.keras.regularizers.L2(L2reg[0]),
                                    bias_regularizer=tf.keras.regularizers.L2(L2reg[0]),)])
 
@@ -53,7 +53,8 @@ class GPLogReg:
         self.GP_out = self.GP(inputs[:-1])
         # GP out: batch x MC samples x tw x features
         self.GP_out = tf.reshape(self.GP_out, (-1, self.samp, self.tw * self.non_s_feat))
-        stat_input = inputs[-1].unsqueeze(1)
+        stat_input = tf.expand_dims(inputs[-1], axis=1)
+        stat_input = tf.broadcast_to(stat_input, [stat_input.shape[0], self.samp, stat_input.shape[-1]])
         self.LR_input = tf.concat([self.GP_out, stat_input], axis=-1)
         self.LR_input = tf.reshape(self.LR_input, (-1, self.tw * self.non_s_feat + self.s_feat))
 
