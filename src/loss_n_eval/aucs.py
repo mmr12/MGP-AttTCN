@@ -18,9 +18,11 @@ def evals(y_true, y_proba, classes, cv=False, singles=True, overall=False):
     pr_comps = []
     if singles:
         # calculate ROC and PR for each horizon
+        cl_print = []
         for i in range(7):
             idx = classes == i
             if np.sum(idx) != 0:
+                cl_print.append(np.sum(idx))
                 y_star = y_true[idx]
                 y = y_proba[idx, 0]
                 roc_horizon, pr_horizon, roc_comp, pr_comp = one_eval(y_star, y, cv=cv)
@@ -30,9 +32,11 @@ def evals(y_true, y_proba, classes, cv=False, singles=True, overall=False):
                 roc_auc.append(roc_horizon)
                 pr_auc.append(pr_horizon)
             else:
-                t_print("warning: no class {}".format(i))
+                cl_print.append(0)
+                #t_print("warning: no class {}".format(i))
                 roc_auc.append(0)
                 pr_auc.append(0)
+        #print('classes', cl_print, np.sum(cl_print), flush=True)
     if overall:
         # calculate ROC and PR over all horizons
         roc_horizon, pr_horizon, roc_comp, pr_comp = one_eval(y_star=y_true, y=y_proba[:, 0], cv=cv)

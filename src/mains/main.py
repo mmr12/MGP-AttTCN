@@ -44,22 +44,22 @@ def my_config():
     num_layers = 4
     kernel_size = 3
     stride = 1
-    DO = [0.6] * num_layers
-    L2reg = [0.5] * num_layers
+    DO = [0.01] * num_layers
+    L2reg = [0.000001] * num_layers
     sigmoid_beta = True
 
     # training
     learning_rate = 0.0005
-    batch_size = 32
-    num_epochs = 6
+    batch_size = 64
+    num_epochs = 100
 
 @ex.config
 def random_search_config():
     num_layers = np.random.randint(2, high=10, size=None, dtype='l')
     learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
     no_mc_samples = np.random.randint(4, high=20, size=None, dtype='l')
-    DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
-    L2reg = [np.random.uniform(0, high=250, size=None) for _ in range(num_layers)]
+    #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
+    #L2reg = [np.random.uniform(0, high=250, size=None) for _ in range(num_layers)]
     load_path = head + "/not_a_path"
     kernel_size = np.random.randint(2, high=6, size=None, dtype='l')
 
@@ -94,7 +94,7 @@ def main(
         num_epochs,
         # sacred
         _run):
-    
+    t_print("nu_layers: {}\tlr: {}\tMC samples :{}\tDO :{}\tL2 :{}\t kernel:{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size))   
     # Load data
     data = DataGenerator(no_mc_samples=no_mc_samples,
                          max_no_dtpts=max_no_dtpts,

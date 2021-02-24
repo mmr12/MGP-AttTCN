@@ -3,6 +3,7 @@ import pickle
 import sys
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
 # appending head path
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir))
@@ -115,7 +116,7 @@ class Trainer:
             np.random.shuffle(self.data.train_control_idx)
             self.data.apply_reshuffle()
 
-            for batch in range(self.no_batches):
+            for batch in tqdm(range(self.no_batches)):
                 if batch % 5 == 0:
                     t_print("Start of batch {}".format(batch))
                 # Load data
