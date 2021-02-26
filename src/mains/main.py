@@ -1,9 +1,9 @@
 import os
 import sys
-
+from datetime import datetime
 import numpy as np
 import tensorflow as tf
-
+import pickle
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir))
 sys.path.append(head)
@@ -94,8 +94,44 @@ def main(
         num_epochs,
         # sacred
         _run):
+    # generate save path
+    logdir = os.path.join( "logs/", datetime.now().strftime("%Y%m%d-%H%M%S"))
+    if not os.path.isdir(logdir):
+        os.mkdir(logdir)
+    Dict = {
+        # data
+        "max_no_dtpts":max_no_dtpts,
+        "min_no_dtpts":min_no_dtpts,
+        "time_window": time_window,
+        "n_features": n_features,
+        "n_stat_features": n_stat_features,
+        "features": features,
+        "late_patients_only": late_patients_only,
+        "horizon0": horizon0,
+        # model
+       "model_choice": model_choice,
+        # MGP
+        "no_mc_samples": no_mc_samples,
+        "kernel_choice": kernel_choice,
+        # TCN
+        "num_layers": num_layers,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "DO": DO,
+        "L2reg": L2reg,
+        "sigmoid_beta": sigmoid_beta,
+        # training
+        "learning_rate": learning_rate,
+        "batch_size": batch_size,
+        "num_epochs": num_epochs,
+    }
+    with open(os.path.join(logdir, 'hyperparam.pkl'), "wb") as f:
+        pickle.dump(Dict, f)
+
+    summary_writers = {'train': tf.summary.create_file_writer(os.path.join(logdir, 'train')),
+                       'val': tf.summary.create_file_writer(os.path.join(logdir, 'val')),
+                       }
     t_print("nu_layers: {}\tlr: {}\tMC samples :{}\tDO :{}\tL2 :{}\t kernel:{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size))
-    save_name = "nl_{}_lr_{}_MC_{}_DO_{}_L2_{}_ker_{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size)
     # Load data
     data = DataGenerator(no_mc_samples=no_mc_samples,
                          max_no_dtpts=max_no_dtpts,
@@ -125,19 +161,20 @@ def main(
                      sigmoid_beta=sigmoid_beta)
 
     # Initialise trainer
-    trainer = Trainer(model,
-                      data,
-                      num_epochs,
-                      batch_size,
-                      optimizer,
-                      global_step,
-                      _run,
+    trainer = Trainer(model=model,
+                      data=data,
+                      num_epochs=num_epochs,
+                      batch_size=batch_size,
+                      optimizer=optimizer,
+                      global_step=global_step,
+                      _run=_run,
+                      summary_writers=summary_writers,
+                      log_path=logdir,
                       train_only=False,
                       notebook_friendly=False,
                       eval_every=20,
                       late_patients_only=late_patients_only,
-                      horizon0=horizon0,
-                      save_file_name="/logs/{}.pkl".format(save_name))
+                      horizon0=horizon0,)
 
     # train model
     trainer.run()

@@ -21,17 +21,17 @@ class Trainer:
                  optimizer,
                  global_step,
                  _run,
+                 summary_writers,
+                 log_path,
                  train_only=False,
                  notebook_friendly=False,
-                 log_path=head + "'experiments/19-08-09-GP_CNN/tf_log",
                  eval_every=20,
                  late_patients_only=False,
                  horizon0=False,
                  lab_vitals_only=False,
                  weighted_loss=None,
-                 save_file_name="/save_temp.pkl"):
+                 ):
 
-        self.save_path = head + save_file_name
         self.model = model
         self.data = data
         self.num_epochs = num_epochs
@@ -39,6 +39,8 @@ class Trainer:
         self.optimizer = optimizer
         self.global_step = global_step
         self.notebook_friendly = notebook_friendly
+        self.summary_writers = summary_writers
+        self.log_path = log_path
         if not self.notebook_friendly:
             self._run = _run
         self.train_only = train_only
@@ -147,13 +149,13 @@ class Trainer:
                     self._roc_batch.append(roc_auc)
                     self._pr_batch.append(pr_auc)
 
-                    # write into sacred observer
+                    # write into tensorboard
                     step = (epoch * self.no_batches + batch) * self.no_dev_batches
-                    if not self.notebook_friendly:
-                        self._run.log_scalar("loss", loss_value.numpy(), step=step)
+                    with self.summary_writers['train'].as_default():
+                        tf.summary.scalar('loss', loss_value.numpy(), step=step)
                         for i in range(8):
-                            self._run.log_scalar("roc_{}".format(i), roc_auc[i], step=step)
-                            self._run.log_scalar("pr_{}".format(i), pr_auc[i], step=step)
+                            tf.summary.scalar("roc_{}".format(i), roc_auc[i], step=step)
+                            tf.summary.scalar("pr_{}".format(i), pr_auc[i], step=step)
 
                     if batch % self.eval_every == 0:
                         t_print("Epoch {:03d} -- Batch {:03d}: Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(
@@ -179,11 +181,12 @@ class Trainer:
                     self.dev_eval(self.num_epochs, None, dev_batch, step)
                 if not self.notebook_friendly:
                     _to_save = {"epoch": epoch,
+                                "y_true": self.all_dev_y,
                                 "y_hat": self.all_dev_y_hat,
                                 "weights": self.model.get_weights()}
-                    with open(self.save_path, "wb") as f:
+                    with open(os.path.join(self.log_path, 'epoch_{}_out.pkl'.format(epoch)), "wb") as f:
                         pickle.dump(_to_save, f)
-                    self._run.add_artifact(self.save_path, "epoch_{}_dict.pkl".format(epoch))
+
 
     def dev_eval(self, epoch, batch, dev_batch, step):
         if batch is not None:
@@ -221,11 +224,11 @@ class Trainer:
                 self.dev_step_batch.append([dev_batch, epoch, batch])
 
                 # write into sacred observer
-                if not self.notebook_friendly:
-                    self._run.log_scalar("loss_dev", loss_dev.numpy(), step=step + dev_batch)
+                with self.summary_writers['val'].as_default():
+                    tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step + dev_batch)
                     for i in range(7):
-                        self._run.log_scalar("roc_{}_dev".format(i), roc_auc[i], step=step + dev_batch)
-                        self._run.log_scalar("pr_{}_dev".format(i), pr_auc[i], step=step + dev_batch)
+                        tf.summary.scalar("roc_{}_dev".format(i), roc_auc[i], step=step + dev_batch)
+                        tf.summary.scalar("pr_{}_dev".format(i), pr_auc[i], step=step + dev_batch)
 
             # print
             t_print("DEV Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(loss_dev, roc_auc[7], pr_auc[7]))
