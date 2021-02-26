@@ -105,8 +105,8 @@ class Trainer:
                     with self.summary_writers['train'].as_default():
                         tf.summary.scalar('loss', loss_value.numpy(), step=step)
                         for i in range(8):
-                            tf.summary.scalar("roc_{}".format(i), roc_auc[i], step=step)
-                            tf.summary.scalar("pr_{}".format(i), pr_auc[i], step=step)
+                            if roc_auc[i] != 0: tf.summary.scalar("roc_{}".format(i), roc_auc[i], step=step)
+                            if pr_auc[i] != 0: tf.summary.scalar("pr_{}".format(i), pr_auc[i], step=step)
 
                     if batch % self.eval_every == 0:
                         t_print("Epoch {:03d} -- Batch {:03d}: Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(
