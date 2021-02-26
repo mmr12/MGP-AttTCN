@@ -99,6 +99,8 @@ class Trainer:
                     # Track progress - metrics
                     y_hat = tf.nn.softmax(self.model(inputs))
                     roc_auc, pr_auc, _, _ = uni_evals(y.numpy(), y_hat.numpy(), classes, overall=True)
+                    self._roc_batch.append(roc_auc)
+                    self._pr_batch.append(pr_auc)
 
                     # write into tensorboard
                     step = (epoch * self.no_batches + batch) * self.no_dev_batches
