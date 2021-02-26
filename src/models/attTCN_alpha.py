@@ -41,7 +41,7 @@ class AttTCN_alpha:
         self.alpha = keras.activations.softmax(self.alpha_layer(self.alphaTCN(inputs)), -2)
         _ = self.get_weights()
         # end shape = batch x time x features x outcome_classes
-        end_shape = [list(inputs.shape) + [2]]
+        end_shape = inputs.shape + [2]
         expanded_alpha = tf.broadcast_to(tf.expand_dims(self.alpha, -2), end_shape)
         expanded_inputs = tf.broadcast_to(tf.expand_dims(inputs, -1), end_shape)
 
