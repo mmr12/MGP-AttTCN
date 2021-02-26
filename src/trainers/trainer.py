@@ -20,7 +20,6 @@ class Trainer:
                  batch_size,
                  optimizer,
                  global_step,
-                 _run,
                  summary_writers,
                  log_path,
                  train_only=False,
@@ -41,8 +40,6 @@ class Trainer:
         self.notebook_friendly = notebook_friendly
         self.summary_writers = summary_writers
         self.log_path = log_path
-        if not self.notebook_friendly:
-            self._run = _run
         self.train_only = train_only
         self.eval_every = eval_every
         self.late_patients_only = late_patients_only
@@ -60,56 +57,12 @@ class Trainer:
         self._roc_batch = []
         self._pr_batch = []
 
-        self.dev_loss_results = []
-        self._roc_dev = []
-        self._pr_dev = []
-        self.dev_step = []
-
-        self.dev_loss_results_batch = []
-        self._roc_dev_batch = []
-        self._pr_dev_batch = []
-        self.dev_step_batch = []
-
-        self.best_epoch = 0
-        self.best_pr = 0
-
-        self.check_roc = 0
-        self.check_epoch = 0
-
         if self.late_patients_only:
             # 'int' truncates, hence int + 1 finds the ceiling
             self.no_batches = int(len(self.data.late_case_patients) * 6 / self.batch_size) + 1
         else:
             self.no_batches = int(len(self.data.train_case_idx) / self.batch_size) + 1
         self.no_dev_batches = int(len(self.data.val_data[-1]) / self.batch_size) + 1
-
-        # final outputs
-        self.train_results = {
-            "loss": np.asarray(self.train_loss_results),
-            "au_roc": np.asarray(self._roc),
-            "au_pr": np.asarray(self._pr),
-            #
-            "loss_batch": np.asarray(self.train_loss_results_batch),
-            "au_roc_batch": np.asarray(self._roc_batch),
-            "au_pr_batch": np.asarray(self._pr_batch)
-        }
-
-        self.dev_results = {
-            "loss": np.asarray(self.dev_loss_results),
-            "au_roc": np.asarray(self._roc_dev),
-            "au_pr": np.asarray(self._pr_dev),
-            "epochs": np.asarray(self.dev_step),
-            #
-            "loss_batch": np.asarray(self.dev_loss_results_batch),
-            "au_roc_batch": np.asarray(self._roc_dev_batch),
-            "au_pr_batch": np.asarray(self._pr_dev_batch)
-
-        }
-
-        self.best_results = {
-            "avg_pr": self.best_pr,
-            "epoch": self.best_epoch
-        }
 
 
     def run(self):
@@ -146,8 +99,6 @@ class Trainer:
                     # Track progress - metrics
                     y_hat = tf.nn.softmax(self.model(inputs))
                     roc_auc, pr_auc, _, _ = uni_evals(y.numpy(), y_hat.numpy(), classes, overall=True)
-                    self._roc_batch.append(roc_auc)
-                    self._pr_batch.append(pr_auc)
 
                     # write into tensorboard
                     step = (epoch * self.no_batches + batch) * self.no_dev_batches
@@ -162,8 +113,8 @@ class Trainer:
                             epoch, batch, loss_value.numpy(), roc_auc[7], pr_auc[7]))
                         if not self.train_only:
                             # iterate over all horizons
-                            for dev_batch in range(7):
-                                self.dev_eval(epoch, batch, dev_batch, step)
+                            for horizon in range(7):
+                                self.dev_eval_per_horizon(horizon, step)
 
             # end of batch loop
             self.train_loss_results.append(np.mean(self.train_loss_results_batch))
@@ -174,26 +125,50 @@ class Trainer:
 
             if not self.train_only:
                 # save all outputs
-                self.all_dev_y = []
-                self.all_dev_y_hat = []
+                all_dev_y = []
+                all_dev_y_hat = []
+                classes = []
                 for dev_batch in range(self.no_dev_batches):
                     step = (self.num_epochs * self.no_batches) * self.no_dev_batches
-                    self.dev_eval(self.num_epochs, None, dev_batch, step)
+                    y_true, y_hat, _class = self.dev_eval(dev_batch, step)
+                    all_dev_y.append(y_true)
+                    all_dev_y_hat.append(y_hat)
+                    classes.append(_class)
                 if not self.notebook_friendly:
                     _to_save = {"epoch": epoch,
-                                "y_true": self.all_dev_y,
-                                "y_hat": self.all_dev_y_hat,
+                                "y_true": all_dev_y,
+                                "y_hat": all_dev_y_hat,
+                                "classes": classes,
                                 "weights": self.model.get_weights()}
                     with open(os.path.join(self.log_path, 'epoch_{}_out.pkl'.format(epoch)), "wb") as f:
                         pickle.dump(_to_save, f)
 
+    def dev_eval_per_horizon(self, horizon, step):
+        batch_data = next(self.data.next_batch_dev_small(horizon))
+        _, loss_dev, roc_auc, pr_auc = self.step(batch_data)
+        with self.summary_writers['val'].as_default():
+            tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step + horizon)
+            tf.summary.scalar("roc_{}_dev".format(horizon), roc_auc[horizon], step=step + horizon)
+            tf.summary.scalar("pr_{}_dev".format(horizon), pr_auc[horizon], step=step + horizon)
+        # print
+        t_print("DEV hz {} Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(horizon,
+                                                                                loss_dev, roc_auc[7], pr_auc[7]))
 
-    def dev_eval(self, epoch, batch, dev_batch, step):
-        if batch is not None:
-            batch_data = next(self.data.next_batch_dev_small(dev_batch))
-        else:
-            batch_data = next(self.data.next_batch_dev_all(self.batch_size, dev_batch))
-            self.all_dev_y.append(batch_data[8].numpy())
+    def dev_eval(self, dev_batch, step):
+        batch_data = next(self.data.next_batch_dev_all(self.batch_size, dev_batch))
+        dev_y_hat, loss_dev, roc_auc, pr_auc = self.step(batch_data)
+        # write into sacred observer
+        with self.summary_writers['val'].as_default():
+            tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step + dev_batch)
+            for i in range(7):
+                if roc_auc[i] != 0: tf.summary.scalar("roc_{}_dev".format(i), roc_auc[i], step=step + dev_batch)
+                if pr_auc[i] != 0: tf.summary.scalar("pr_{}_dev".format(i), pr_auc[i], step=step + dev_batch)
+        # print
+        t_print("DEV Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(loss_dev, roc_auc[7], pr_auc[7]))
+        # return y_true, y_hat, class
+        return np.array(batch_data[9]), dev_y_hat, np.array(batch_data[9])
+
+    def step(self, batch_data):
         # batch_data[8] is static
         if self.lab_vitals_only:
             inputs = batch_data[:7]
@@ -204,31 +179,9 @@ class Trainer:
         if len(y) > 0:
             # Track progress - dev loss
             loss_dev = GP_loss(self.model, inputs, y)
-            if batch is None:
-                self.dev_loss_results.append([dev_batch, loss_dev.numpy()])
-            else:
-                self.dev_loss_results_batch.append([dev_batch, loss_dev.numpy()])
-
             # Track progress - dev metrics
             dev_y_hat = tf.nn.softmax(self.model(inputs))
             roc_auc, pr_auc, _, _ = uni_evals(y.numpy(), dev_y_hat.numpy(), classes, overall=True)
-            if batch is None:
-                self.all_dev_y_hat.append(dev_y_hat.numpy())
-                self._roc_dev.append([dev_batch] + roc_auc)
-                self._pr_dev.append([dev_batch] + pr_auc)
-            else:
-                self._roc_dev_batch.append([dev_batch] + roc_auc)
-                self._pr_dev_batch.append([dev_batch] + pr_auc)
+            return dev_y_hat, loss_dev, roc_auc, pr_auc
+        else: return None, None, None, None
 
-                # Iteration storage
-                self.dev_step_batch.append([dev_batch, epoch, batch])
-
-                # write into sacred observer
-                with self.summary_writers['val'].as_default():
-                    tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step + dev_batch)
-                    for i in range(7):
-                        tf.summary.scalar("roc_{}_dev".format(i), roc_auc[i], step=step + dev_batch)
-                        tf.summary.scalar("pr_{}_dev".format(i), pr_auc[i], step=step + dev_batch)
-
-            # print
-            t_print("DEV Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(loss_dev, roc_auc[7], pr_auc[7]))

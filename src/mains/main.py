@@ -11,61 +11,8 @@ from src.utils.debug import t_print
 from src.data_loader.loader import DataGenerator
 from src.models.GP_attTCN import GPattTCN
 from src.trainers.trainer import Trainer
-from sacred import Experiment
-
-exp_name = 'GP_AttTCN'
-ex = Experiment(exp_name)
-#tf.enable_eager_execution()
 
 
-@ex.config
-def my_config():
-    # data
-    max_no_dtpts = 250  # chopping 4.6% of data at 250
-    min_no_dtpts = 40  # helping with covariance singularity
-    time_window = 25  # fixed
-    n_features = 24  # old data: 44
-    n_stat_features = 8  # old data: 35
-    features = 'mr_features_mm_labels'
-    n_features=17
-    n_stat_features=8
-    features = None
-    late_patients_only = False
-    horizon0 = False
-
-    # model
-    model_choice = 'Att'  # ['Att', 'Moor']
-
-    # MGP
-    no_mc_samples = 10
-    kernel_choice = 'OU'
-
-    # TCN
-    num_layers = 4
-    kernel_size = 3
-    stride = 1
-    DO = [0.01] * 10
-    L2reg = [0.000001] * 10
-    sigmoid_beta = True
-
-    # training
-    learning_rate = 0.0005
-    batch_size = 64
-    num_epochs = 100
-
-@ex.config
-def random_search_config():
-    num_layers = np.random.randint(2, high=8, size=None, dtype='l')
-    learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
-    no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
-    #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
-    L2reg = [np.random.uniform(0, high=250, size=None) for _ in range(num_layers)]
-    load_path = head + "/not_a_path"
-    kernel_size = np.random.randint(2, high=6, size=None, dtype='l')
-
-
-
-@ex.automain
 def main(
         # data
         max_no_dtpts,
@@ -91,9 +38,7 @@ def main(
         # training
         learning_rate,
         batch_size,
-        num_epochs,
-        # sacred
-        _run):
+        num_epochs,):
     # generate save path
     logdir = os.path.join( "logs/", datetime.now().strftime("%Y%m%d-%H%M%S"))
     if not os.path.isdir(logdir):
@@ -167,7 +112,6 @@ def main(
                       batch_size=batch_size,
                       optimizer=optimizer,
                       global_step=global_step,
-                      _run=_run,
                       summary_writers=summary_writers,
                       log_path=logdir,
                       train_only=False,
@@ -178,11 +122,76 @@ def main(
 
     # train model
     trainer.run()
-    ignore = True
-    if not ignore:
-        n_pts = len(data.val_data[-1])
-        y = np.reshape(np.asarray(trainer.all_dev_y), (-1))
-        y_hat = np.reshape(np.asarray(trainer.all_dev_y_hat), (-1, 2))[:, 0]
-        for i in range(n_pts):
-            _run.log_scalar("y_dev", y[i])
-            _run.log_scalar("y_hat_dev", y_hat[i])
+
+
+if __name__=="__main__":
+    tf.random.set_seed(1237)
+    np.random.seed(1237)
+    # data
+    max_no_dtpts = 250  # chopping 4.6% of data at 250
+    min_no_dtpts = 40  # helping with covariance singularity
+    time_window = 25  # fixed
+    n_features = 24  # old data: 44
+    n_stat_features = 8  # old data: 35
+    features = 'mr_features_mm_labels'
+    n_features= 17
+    n_stat_features= 8
+    features = None
+    late_patients_only = False
+    horizon0 = False
+
+    # model
+    model_choice = 'Att'  # ['Att', 'Moor']
+
+    # MGP
+    no_mc_samples = 10
+    kernel_choice = 'OU'
+
+    # TCN
+    num_layers = 4
+    kernel_size = 3
+    stride = 1
+    DO = [0.01] * 10
+    L2reg = [0.000001] * 10
+    sigmoid_beta = True
+
+    # training
+    learning_rate = 0.0005
+    batch_size = 64
+    num_epochs = 100
+
+
+    num_layers = np.random.randint(2, high=8, size=None, dtype='l')
+    learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
+    no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
+    #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
+    L2reg = [10**(np.random.randint(-5, high=8, size=None, dtype='l')) for _ in range(num_layers)]
+    load_path = head + "/not_a_path"
+    kernel_size = np.random.randint(2, high=6, size=None, dtype='l')
+
+    main(
+        # data
+        max_no_dtpts,
+        min_no_dtpts,
+        time_window,
+        n_features,
+        n_stat_features,
+        features,
+        late_patients_only,
+        horizon0,
+        # model
+        model_choice,
+        # MGP
+        no_mc_samples,
+        kernel_choice,
+        # TCN
+        num_layers,
+        kernel_size,
+        stride,
+        DO,
+        L2reg,
+        sigmoid_beta,
+        # training
+        learning_rate,
+        batch_size,
+        num_epochs)
