@@ -38,9 +38,7 @@ def main(
         # training
         learning_rate,
         batch_size,
-        num_epochs,
-        # sacred
-        _run):
+        num_epochs,):
     # generate save path
     logdir = os.path.join("logs/abl_alpha", datetime.now().strftime("%Y%m%d-%H%M%S"))
     if not os.path.isdir(logdir):
@@ -145,19 +143,14 @@ if __name__=="__main__":
     model_choice = 'Att'  # ['Att', 'Moor']
 
     # MGP
-    no_mc_samples = 10
     kernel_choice = 'OU'
 
     # TCN
-    num_layers = 4
-    kernel_size = 3
     stride = 1
     DO = [0.01] * 10
-    L2reg = [0.000001] * 10
     sigmoid_beta = True
 
     # training
-    learning_rate = 0.0005
     batch_size = 128
     num_epochs = 100
 
@@ -167,7 +160,6 @@ if __name__=="__main__":
     no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
     #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
     L2reg = [10**float(np.random.randint(-5, high=8, size=None, dtype='l'))] * num_layers
-    load_path = head + "/not_a_path"
     kernel_size = (np.random.randint(2, high=6, size=None, dtype='l'),)
 
     main(
@@ -195,4 +187,4 @@ if __name__=="__main__":
         # training
         learning_rate,
         batch_size,
-        num_epochs)
+        num_epochs,)

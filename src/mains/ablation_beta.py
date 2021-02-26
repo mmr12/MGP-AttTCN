@@ -194,4 +194,4 @@ if __name__=="__main__":
         # training
         learning_rate,
         batch_size,
-        num_epochs)
+        num_epochs,)

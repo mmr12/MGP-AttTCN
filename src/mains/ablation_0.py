@@ -62,8 +62,7 @@ def main(
         pickle.dump(Dict, f)
 
     summary_writers = {'train': tf.summary.create_file_writer(os.path.join(logdir, 'train')),
-                       'val': tf.summary.create_file_writer(os.path.join(logdir, 'val')),}
-    t_print("nu_layers: {}\tlr: {}\tMC samples :{}\tDO :{}\tL2 :{}\t kernel:{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size))
+                       'val': tf.summary.create_file_writer(os.path.join(logdir, 'val'))}
     # Load data
     data = DataGenerator(no_mc_samples=no_mc_samples,
                          max_no_dtpts=max_no_dtpts,
@@ -128,22 +127,15 @@ if __name__=="__main__":
     no_mc_samples = 10
     kernel_choice = 'OU'
 
-    # TCN
-    L2reg = [0.000001] * 10
-
     # training
     learning_rate = 0.0005
     batch_size = 128
     num_epochs = 100
 
-
-    num_layers = np.random.randint(2, high=8, size=None, dtype='l')
     learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
     no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
-    #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
-    L2reg = [10**float(np.random.randint(-5, high=8, size=None, dtype='l'))] * num_layers
-    load_path = head + "/not_a_path"
-    kernel_size = (np.random.randint(2, high=6, size=None, dtype='l'),)
+    L2reg = [10**float(np.random.randint(-5, high=8, size=None, dtype='l'))] * 5
+
 
     main(
         # data
@@ -160,11 +152,8 @@ if __name__=="__main__":
         # MGP
         no_mc_samples,
         kernel_choice,
-        # TCN
-        num_layers,
-        kernel_size,
         L2reg,
         # training
         learning_rate,
         batch_size,
-        num_epochs)
+        num_epochs,)
