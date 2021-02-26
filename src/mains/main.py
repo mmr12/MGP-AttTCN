@@ -55,11 +55,11 @@ def my_config():
 
 @ex.config
 def random_search_config():
-    num_layers = np.random.randint(2, high=10, size=None, dtype='l')
+    num_layers = np.random.randint(2, high=8, size=None, dtype='l')
     learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
-    no_mc_samples = np.random.randint(4, high=20, size=None, dtype='l')
+    no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
     #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
-    #L2reg = [np.random.uniform(0, high=250, size=None) for _ in range(num_layers)]
+    L2reg = [np.random.uniform(0, high=250, size=None) for _ in range(num_layers)]
     load_path = head + "/not_a_path"
     kernel_size = np.random.randint(2, high=6, size=None, dtype='l')
 
