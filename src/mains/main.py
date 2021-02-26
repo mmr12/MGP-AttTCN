@@ -157,7 +157,7 @@ if __name__=="__main__":
 
     # training
     learning_rate = 0.0005
-    batch_size = 64
+    batch_size = 128
     num_epochs = 100
 
 
@@ -165,9 +165,9 @@ if __name__=="__main__":
     learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
     no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
     #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
-    L2reg = [10**(np.random.randint(-5, high=8, size=None, dtype='l')) for _ in range(num_layers)]
+    L2reg = [10**float(np.random.randint(-5, high=8, size=None, dtype='l'))] * num_layers
     load_path = head + "/not_a_path"
-    kernel_size = np.random.randint(2, high=6, size=None, dtype='l')
+    kernel_size = (np.random.randint(2, high=6, size=None, dtype='l'),)
 
     main(
         # data
