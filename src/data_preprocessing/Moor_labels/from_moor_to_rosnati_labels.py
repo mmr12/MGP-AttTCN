@@ -11,7 +11,7 @@ from src.data_preprocessing.features_preprocessing.stepII_split_sets_n_normalise
 from src.data_preprocessing.features_preprocessing.stepIII_GP_prep import CompactTransform
 from src.data_preprocessing.features_preprocessing.stepIV_GP_prep_part_II import GPPreprocessingSecondRound
 
-def moor_labels_main(args):
+def moor_labels_main():
     # merge extracted data, normalise TS length, run basic tests
     interim_path = os.path.join(head, 'data', 'moor' ,'interim')
     processed_path = os.path.join(head, 'data', 'moor' ,'processed')
@@ -57,7 +57,7 @@ def moor_labels_main(args):
     # normalise, separate sets
     moor_path = os.path.join(head, 'data', 'moor' )
     final_data_var_path = os.path.join(head, 'data', 'moor','processed', 'full_labvitals_horizon_0_last.csv')
-    final_data_stat_path = os.path.join(head, 'data', 'processed', 'moor', 'full_static.csv')
+    final_data_stat_path = os.path.join(head, 'data','moor', 'processed', 'full_static.csv')
     sets_n_norm = MakeSetsAndNormalise(final_data_var_path, final_data_stat_path)
     sets_n_norm.load_data()
     try:
@@ -65,7 +65,7 @@ def moor_labels_main(args):
     except FileNotFoundError:
         sets_n_norm.split(moor_path)
     sets_n_norm.normalise()
-    sets_n_norm.save(moor_path)
+    sets_n_norm.save(path=moor_path)
 
     # GP models features
     for outpath in ['train', 'val', 'test']:
@@ -82,3 +82,6 @@ def moor_labels_main(args):
         GP_prepII.discard_useless_files()
         GP_prepII.join_files()
         GP_prepII.save()
+
+if __name__ == "__main__":
+    moor_labels_main()
