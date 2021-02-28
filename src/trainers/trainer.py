@@ -66,6 +66,7 @@ class Trainer:
 
 
     def run(self):
+        step = 0
         for epoch in range(self.num_epochs):
             t_print("Start of epoch {}".format(epoch))
             # shuffle data
@@ -103,7 +104,7 @@ class Trainer:
                     self._pr_batch.append(pr_auc)
 
                     # write into tensorboard
-                    step = (epoch * self.no_batches + batch) * self.no_dev_batches
+                    #step = (epoch * self.no_batches + batch) * self.no_dev_batches
                     with self.summary_writers['train'].as_default():
                         tf.summary.scalar('loss', loss_value.numpy(), step=step)
                         for i in range(8):
@@ -117,6 +118,7 @@ class Trainer:
                             # iterate over all horizons
                             for horizon in range(7):
                                 self.dev_eval_per_horizon(horizon, step)
+                    step += 1
 
             # end of batch loop
             self.train_loss_results.append(np.mean(self.train_loss_results_batch))
@@ -130,12 +132,13 @@ class Trainer:
                 all_dev_y = []
                 all_dev_y_hat = []
                 classes = []
+                _step = step - self.no_dev_batches
                 for dev_batch in range(self.no_dev_batches):
-                    step = (self.num_epochs * self.no_batches) * self.no_dev_batches
-                    y_true, y_hat, _class = self.dev_eval(dev_batch, step)
+                    y_true, y_hat, _class = self.dev_eval(dev_batch, _step)
                     all_dev_y.append(y_true)
                     all_dev_y_hat.append(y_hat)
                     classes.append(_class)
+                    _step += 1
                 if not self.notebook_friendly:
                     _to_save = {"epoch": epoch,
                                 "y_true": all_dev_y,
@@ -148,10 +151,10 @@ class Trainer:
     def dev_eval_per_horizon(self, horizon, step):
         batch_data = next(self.data.next_batch_dev_small(horizon))
         _, loss_dev, roc_auc, pr_auc = self.step(batch_data)
-        with self.summary_writers['val'].as_default():
-            tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step + horizon)
-            tf.summary.scalar("roc_{}_dev".format(horizon), roc_auc[horizon], step=step + horizon)
-            tf.summary.scalar("pr_{}_dev".format(horizon), pr_auc[horizon], step=step + horizon)
+        with self.summary_writers['val_hz'].as_default():
+            tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step)
+            tf.summary.scalar("roc_{}_dev".format(horizon), roc_auc[horizon], step=step)
+            tf.summary.scalar("pr_{}_dev".format(horizon), pr_auc[horizon], step=step)
         # print
         t_print("DEV hz {} Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(horizon,
                                                                                 loss_dev, roc_auc[7], pr_auc[7]))
@@ -161,10 +164,10 @@ class Trainer:
         dev_y_hat, loss_dev, roc_auc, pr_auc = self.step(batch_data)
         # write into sacred observer
         with self.summary_writers['val'].as_default():
-            tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step + dev_batch)
+            tf.summary.scalar("loss_dev", loss_dev.numpy(), step=step)
             for i in range(7):
-                if roc_auc[i] != 0: tf.summary.scalar("roc_{}_dev".format(i), roc_auc[i], step=step + dev_batch)
-                if pr_auc[i] != 0: tf.summary.scalar("pr_{}_dev".format(i), pr_auc[i], step=step + dev_batch)
+                if roc_auc[i] != 0: tf.summary.scalar("roc_{}_dev".format(i), roc_auc[i], step=step)
+                if pr_auc[i] != 0: tf.summary.scalar("pr_{}_dev".format(i), pr_auc[i], step=step)
         # print
         t_print("DEV Loss: {:.3f}\tROC o/a:{:.3f}\tPR  o/a:{:.3f}".format(loss_dev, roc_auc[7], pr_auc[7]))
         # return y_true, y_hat, class
