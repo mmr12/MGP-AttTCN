@@ -97,11 +97,10 @@ class CompactTransform:
                        labels, num_rnn_grid_times, rnn_grid_times,
                        num_obs_times, num_obs_values, onset_hour, ids]
 
-    def save(self, features=None):
-        if features is None:
-            path = os.path.join(self.head, 'data', self.outpath, "GP_prep.pkl")
-        else:
-            path = os.path.join(self.head, 'data', self.outpath, "GP_prep_{}.pkl".format(features))
+    def save(self, path=None):
+        if path is None:
+            path = os.path.join(self.head, 'data')
+        path = os.path.join(path, self.outpath, "GP_prep.pkl")
         with open(path, "wb") as f:
             pickle.dump(self.result, f)
 

@@ -36,8 +36,10 @@ class MakeSetsAndNormalise:
         if "Unnamed: 0" in self.var_data.columns:
             self.var_data.drop(columns="Unnamed: 0")
 
-    def split(self):
-        file = os.path.join(self.head, 'data', self.split_file)
+    def split(self, path=None):
+        if path is None:
+            path = os.path.join(self.head, 'data')
+        file = os.path.join(path, self.split_file)
         all_icus = self.stat_data.icustay_id.unique().tolist()
         random.shuffle(all_icus)
         no_icus = len(all_icus)
@@ -50,8 +52,10 @@ class MakeSetsAndNormalise:
         pickle.dump(self.sets, f)
         f.close()
 
-    def load_split(self):
-        file = os.path.join(self.head, 'data', self.split_file)
+    def load_split(self, path=None):
+        if path is None:
+            path = os.path.join(self.head, 'data')
+        file = os.path.join(path, self.split_file)
         with open(file, "rb") as f:
             self.sets = pickle.load(f)
 
@@ -89,8 +93,9 @@ class MakeSetsAndNormalise:
             self.stat_data.admission_age = (self.stat_data.admission_age - mean) / std
 
 
-    def save(self, file_name=None):
-        path = os.path.join(self.head, 'data')
+    def save(self, file_name=None,path=None):
+        if path is None:
+            path = os.path.join(self.head, 'data')
         sets_names = ["train", "val", "test"]
         if file_name is None:
             full_static = "full_static.csv"
@@ -99,8 +104,8 @@ class MakeSetsAndNormalise:
             full_static = "full_static_{}.csv".format(file_name)
             full_labvitals = "full_labvitals_{}.csv".format(file_name)
         for set in sets_names:
-            if not os.path.exists(path + set):
-                os.makedirs(path + set)
+            if not os.path.exists(os.path.join(path, set)):
+                os.path.join(path, set)
             self.stat_data[self.stat_data.icustay_id.isin(self.sets[set])].to_csv(os.path.join(path, set, full_static))
             self.var_data[self.var_data.icustay_id.isin(self.sets[set])].to_csv(os.path.join(path, set,  full_labvitals))
 

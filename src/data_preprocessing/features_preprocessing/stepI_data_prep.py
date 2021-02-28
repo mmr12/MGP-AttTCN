@@ -108,7 +108,7 @@ class DataPreprocessing:
                                           right_on=['icustay_id', 'chart_time', 'subject_id', 'pseudo_target'],
                                           sort=True)
 
-    def get_onset_hour(self):
+    def get_onset_hour(self, savepath=None):
         self.onset_hours = pd.DataFrame(columns=['icustay_id',
                                                  'onset_hour'])
         # df to return mapping icustay_id to onset_hour (true sepsis onset or matched control onset)
@@ -120,8 +120,10 @@ class DataPreprocessing:
             dataset = dataset.rename(columns=new_cols)
             self.onset_hours = self.onset_hours.append(dataset, sort=False)
         file = "onset_hours.csv"
-        file_path = os.path.join(self.head, 'data', 'processed', file)
-
+        if savepath is None:
+            file_path = os.path.join(self.head, 'data', 'processed', file)
+        else:
+            file_path = os.path.join(savepath, file)
         self.onset_hours.to_csv(file_path, index=False)
 
     def extract_window(self, data=None, static_data=None, onset_name=None, horizon=0):
@@ -149,7 +151,7 @@ class DataPreprocessing:
                                                      onset_name='control_onset_time',
                                                      horizon=self.horizon)
 
-    def merge_case_control(self, file_name=None):
+    def merge_case_control(self, file_name=None, savepath=None):
         # rename pseudo_target, such that case and controls can be appended to same df..
         self.control_labvitals = self.control_labvitals.rename(columns={'pseudo_target': 'sepsis_target'})
 
@@ -163,7 +165,10 @@ class DataPreprocessing:
         self.full_labvitals = self.full_labvitals.reset_index(drop=True)
 
         # save
-        path = os.path.join(self.head, 'data', 'interim')
+        if savepath is None:
+            path = os.path.join(self.head, 'data', 'interim')
+        else:
+            path= savepath
         if file_name is None:
             file = "full_labvitals_horizon_{}.csv".format(self.horizon)
         else:
@@ -171,7 +176,7 @@ class DataPreprocessing:
 
         self.full_labvitals.to_csv(os.path.join(path, file), index=False)
 
-    def ts_length_checks(self, file_name=None):
+    def ts_length_checks(self, file_name=None, savepath=None):
         # drop variables that don't at least have na_thres many measurements..
         self.full_labvitals = self.full_labvitals.dropna(axis=1, thresh=self.na_thres)
         # drop too short time series samples.
@@ -186,14 +191,18 @@ class DataPreprocessing:
         if self.max_length:
             to_drop = self.full_labvitals.loc[self.full_labvitals.chart_time > self.max_length, "icustay_id"].tolist()
             self.full_labvitals = self.full_labvitals[~self.full_labvitals.icustay_id.isin(to_drop)]
-        path = os.path.join(self.head, 'data', 'processed')
+        if savepath is None:
+            path = os.path.join(self.head, 'data', 'processed')
+        else:
+            path = savepath
+
         if file_name is None:
             file = "full_labvitals_horizon_{}_last.csv".format(self.horizon)
         else:
             file = "full_labvitals_horizon_{}_{}_last.csv".format(self.horizon, file_name)
         self.full_labvitals.to_csv(os.path.join(path, file), index=False)
 
-    def static_prep(self):
+    def static_prep(self, savepath=None):
         static_vars = ['icustay_id', 'admission_age', 'gender', 'first_careunit']
         all_stats = self.case_static[static_vars].append(self.control_static[static_vars], sort=False)
         all_stats.loc[all_stats.admission_age > 90, "admission_age"] = 90
@@ -202,7 +211,11 @@ class DataPreprocessing:
         self.full_static.insert(loc=0, column='icustay_id', value=all_stats.icustay_id.tolist())
 
         file = "full_static.csv"
-        file_path = os.path.join(self.head, 'data', 'processed', file)
+        if savepath is None:
+            path = os.path.join(self.head, 'data', 'processed')
+        else:
+            path = savepath
+        file_path = os.path.join(path, file)
         self.full_static.to_csv(file_path, index=False)
 
 
