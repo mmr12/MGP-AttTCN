@@ -105,7 +105,7 @@ class MakeSetsAndNormalise:
             full_labvitals = "full_labvitals_{}.csv".format(file_name)
         for set in sets_names:
             if not os.path.exists(os.path.join(path, set)):
-                os.path.join(path, set)
+                os.mkdir(os.path.join(path, set))
             self.stat_data[self.stat_data.icustay_id.isin(self.sets[set])].to_csv(os.path.join(path, set, full_static))
             self.var_data[self.var_data.icustay_id.isin(self.sets[set])].to_csv(os.path.join(path, set,  full_labvitals))
 
