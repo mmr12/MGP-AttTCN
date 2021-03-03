@@ -169,7 +169,7 @@ if __name__=="__main__":
     args = parser.parse_args()
     learning_rate = args.learning_rate
     no_mc_samples = args.no_mc_samples
-    kernel_size = args.kernel_size
+    kernel_size = (args.kernel_size,)
     num_layers = args.num_layers
     seed = args.seed
     tf.random.set_seed(seed)
