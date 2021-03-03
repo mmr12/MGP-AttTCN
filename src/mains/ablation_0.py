@@ -3,6 +3,7 @@ import sys
 from datetime import datetime
 import numpy as np
 import tensorflow as tf
+from argparse import ArgumentParser
 import pickle
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir))
@@ -32,7 +33,8 @@ def main(
         # training
         learning_rate,
         batch_size,
-        num_epochs,):
+        num_epochs,
+        seed):
     # generate save path
     logdir = os.path.join("logs/ablation_0", datetime.now().strftime("%Y%m%d-%H%M%S"))
     if not os.path.isdir(logdir):
@@ -57,6 +59,7 @@ def main(
         "learning_rate": learning_rate,
         "batch_size": batch_size,
         "num_epochs": num_epochs,
+        "seed":seed
     }
     with open(os.path.join(logdir, 'hyperparam.pkl'), "wb") as f:
         pickle.dump(Dict, f)
@@ -105,17 +108,12 @@ def main(
 
 
 if __name__=="__main__":
-    tf.random.set_seed(1237)
-    np.random.seed(1237)
     # data
     max_no_dtpts = 250  # chopping 4.6% of data at 250
     min_no_dtpts = 40  # helping with covariance singularity
     time_window = 25  # fixed
-    n_features = 24  # old data: 44
-    n_stat_features = 8  # old data: 35
-    features = 'mr_features_mm_labels'
-    n_features= 17
-    n_stat_features= 8
+    n_features = 17
+    n_stat_features = 8
     features = None
     late_patients_only = False
     horizon0 = False
@@ -124,18 +122,28 @@ if __name__=="__main__":
     model_choice = 'Att'  # ['Att', 'Moor']
 
     # MGP
-    no_mc_samples = 10
     kernel_choice = 'OU'
 
     # training
-    learning_rate = 0.0005
     batch_size = 128
     num_epochs = 100
 
-    learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
-    no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
-    L2reg = [10**float(np.random.randint(-5, high=8, size=None, dtype='l'))] * 5
-
+    parser = ArgumentParser()
+    parser.add_argument('--learning_rate',
+                        default=np.random.uniform(10e-6, high=10e-4, size=None),
+                        type=float)
+    parser.add_argument('--no_mc_samples',
+                        default=np.random.randint(8, high=20, size=None, dtype='l'),
+                        type=int)
+    parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=int)
+    parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)
+    args = parser.parse_args()
+    learning_rate = args.learning_rate
+    no_mc_samples = args.no_mc_samples
+    seed = args.seed
+    tf.random.set_seed(seed)
+    np.random.seed(seed)
+    L2reg = [10**float(args.L2reg)] * 10
 
     main(
         # data
@@ -156,4 +164,6 @@ if __name__=="__main__":
         # training
         learning_rate,
         batch_size,
-        num_epochs,)
+        num_epochs,
+        # seed
+        seed)
