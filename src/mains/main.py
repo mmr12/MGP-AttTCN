@@ -126,8 +126,8 @@ def main(
 
 
 if __name__=="__main__":
-    tf.random.set_seed(1237)
-    np.random.seed(1237)
+    #tf.random.set_seed(1237)
+    #np.random.seed(1237)
     # data
     max_no_dtpts = 250  # chopping 4.6% of data at 250
     min_no_dtpts = 40  # helping with covariance singularity
