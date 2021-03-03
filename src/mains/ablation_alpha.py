@@ -78,6 +78,7 @@ def main(
 
     summary_writers = {'train': tf.summary.create_file_writer(os.path.join(logdir, 'train')),
                        'val': tf.summary.create_file_writer(os.path.join(logdir, 'val')),
+                       'val_hz': tf.summary.create_file_writer(os.path.join(logdir, 'val_hz'))
                        }
     t_print("nu_layers: {}\tlr: {}\tMC samples :{}\tDO :{}\tL2 :{}\t kernel:{}".format(num_layers, learning_rate, no_mc_samples, DO[0], L2reg[0], kernel_size))
     # Load data

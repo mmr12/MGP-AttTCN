@@ -65,7 +65,9 @@ def main(
         pickle.dump(Dict, f)
 
     summary_writers = {'train': tf.summary.create_file_writer(os.path.join(logdir, 'train')),
-                       'val': tf.summary.create_file_writer(os.path.join(logdir, 'val'))}
+                       'val': tf.summary.create_file_writer(os.path.join(logdir, 'val')),
+                       'val_hz': tf.summary.create_file_writer(os.path.join(logdir, 'val_hz'))
+                       }
     # Load data
     data = DataGenerator(no_mc_samples=no_mc_samples,
                          max_no_dtpts=max_no_dtpts,
