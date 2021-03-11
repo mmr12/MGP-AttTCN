@@ -13,8 +13,8 @@ from src.data_preprocessing.features_preprocessing.stepIV_GP_prep_part_II import
 
 def moor_labels_main():
     # merge extracted data, normalise TS length, run basic tests
-    interim_path = os.path.join(head, 'data', 'moor' ,'interim')
-    processed_path = os.path.join(head, 'data', 'moor' ,'processed')
+    interim_path = os.path.join(head, 'data', 'moor', 'interim')
+    processed_path = os.path.join(head, 'data', 'moor', 'processed')
     files = ["static_variables.csv",
              "static_variables_cases.csv",
              "static_variables_controls.csv",
@@ -22,6 +22,23 @@ def moor_labels_main():
              "control_55h_hourly_vitals_ex1c.csv",
              "case_55h_hourly_labs_ex1c.csv",
              "control_55h_hourly_labs_ex1c.csv", ]
+
+    # first remove extra columns
+    r_interim_path = os.path.join(head, 'data', 'interim')
+    r_files = ["static_variables.csv",
+             "static_variables_cases.csv",
+             "static_variables_controls.csv",
+             "vital_variables_cases.csv",
+             "vital_variables_controls.csv",
+             "lab_variables_cases.csv",
+             "lab_variables_controls.csv", ]
+    for file, rfile in zip(files, r_files):
+        df = pd.read_csv(os.path.join(interim_path, file))
+        rdf = pd.read_csv(os.path.join(r_interim_path, rfile))
+        df = df[set(df.columns) & set(rdf.columns)]
+        df.to_csv(os.path.join(interim_path, rfile))
+
+    files = r_files
 
     cas_f = os.path.join(interim_path, files[1])
     cos_f = os.path.join(interim_path, files[2])
