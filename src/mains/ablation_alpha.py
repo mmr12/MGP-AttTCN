@@ -130,7 +130,7 @@ if __name__=="__main__":
     max_no_dtpts = 250  # chopping 4.6% of data at 250
     min_no_dtpts = 40  # helping with covariance singularity
     time_window = 25  # fixed
-    n_features= 17
+    n_features= 24
     n_stat_features= 8
     late_patients_only = False
     horizon0 = False
