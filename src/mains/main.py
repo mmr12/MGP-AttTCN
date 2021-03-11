@@ -3,6 +3,7 @@ import sys
 from datetime import datetime
 import numpy as np
 import tensorflow as tf
+from argparse import ArgumentParser
 import pickle
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir))
@@ -23,8 +24,6 @@ def main(
         features,
         late_patients_only,
         horizon0,
-        # model
-        model_choice,
         # MGP
         no_mc_samples,
         kernel_choice,
@@ -53,8 +52,6 @@ def main(
         "features": features,
         "late_patients_only": late_patients_only,
         "horizon0": horizon0,
-        # model
-       "model_choice": model_choice,
         # MGP
         "no_mc_samples": no_mc_samples,
         "kernel_choice": kernel_choice,
@@ -134,41 +131,44 @@ if __name__=="__main__":
     time_window = 25  # fixed
     n_features = 24  # old data: 44
     n_stat_features = 8  # old data: 35
-    features = 'mr_features_mm_labels'
-    n_features= 17
-    n_stat_features= 8
-    features = None
     late_patients_only = False
     horizon0 = False
 
-    # model
-    model_choice = 'Att'  # ['Att', 'Moor']
-
     # MGP
-    no_mc_samples = 10
     kernel_choice = 'OU'
 
     # TCN
-    num_layers = 4
-    kernel_size = 3
     stride = 1
     DO = [0.01] * 10
-    L2reg = [0.000001] * 10
     sigmoid_beta = True
 
     # training
-    learning_rate = 0.0005
     batch_size = 128
     num_epochs = 100
 
 
-    num_layers = np.random.randint(2, high=8, size=None, dtype='l')
-    learning_rate = np.random.uniform(10e-6, high=10e-4, size=None)
-    no_mc_samples = np.random.randint(8, high=20, size=None, dtype='l')
-    #DO = [np.random.uniform(0, high=0.99, size=None) for _ in range(num_layers)]
-    L2reg = [10**float(np.random.randint(-5, high=8, size=None, dtype='l'))] * num_layers
-    load_path = head + "/not_a_path"
-    kernel_size = (np.random.randint(2, high=6, size=None, dtype='l'),)
+    parser = ArgumentParser()
+    parser.add_argument('--learning_rate',
+                        default=np.random.uniform(10e-6, high=10e-4, size=None),
+                        type=float)
+    parser.add_argument('--no_mc_samples',
+                        default=np.random.randint(8, high=20, size=None, dtype='l'),
+                        type=int)
+    parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=float)
+    parser.add_argument('--kernel_size', default=np.random.randint(2, high=6, size=None, dtype='l'), type=int)
+    parser.add_argument('--num_layers', default=np.random.randint(2, high=8, size=None, dtype='l'), type=int)
+    parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)
+    parser.add_argument('--features', default='rosnati', type=str)
+    args = parser.parse_args()
+    learning_rate = args.learning_rate
+    no_mc_samples = args.no_mc_samples
+    kernel_size = (args.kernel_size,)
+    num_layers = args.num_layers
+    seed = args.seed
+    features =args.features
+    tf.random.set_seed(seed)
+    np.random.seed(seed)
+    L2reg = [10**float(args.L2reg)] * 10
 
     main(
         # data
@@ -180,8 +180,6 @@ if __name__=="__main__":
         features,
         late_patients_only,
         horizon0,
-        # model
-        model_choice,
         # MGP
         no_mc_samples,
         kernel_choice,

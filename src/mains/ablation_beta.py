@@ -24,8 +24,6 @@ def main(
         features,
         late_patients_only,
         horizon0,
-        # model
-        model_choice,
         # MGP
         no_mc_samples,
         kernel_choice,
@@ -55,8 +53,6 @@ def main(
         "features": features,
         "late_patients_only": late_patients_only,
         "horizon0": horizon0,
-        # model
-        "model_choice": model_choice,
         # MGP
         "no_mc_samples": no_mc_samples,
         "kernel_choice": kernel_choice,
@@ -136,7 +132,6 @@ if __name__=="__main__":
     time_window = 25  # fixed
     n_features= 17
     n_stat_features= 8
-    features = None
     late_patients_only = False
     horizon0 = False
 
@@ -166,12 +161,14 @@ if __name__=="__main__":
     parser.add_argument('--kernel_size', default=np.random.randint(2, high=6, size=None, dtype='l'), type=int)
     parser.add_argument('--num_layers', default=np.random.randint(2, high=8, size=None, dtype='l'), type=int)
     parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)
+    parser.add_argument('--features', default='rosnati', type=str)
     args = parser.parse_args()
     learning_rate = args.learning_rate
     no_mc_samples = args.no_mc_samples
     kernel_size = (args.kernel_size,)
     num_layers = args.num_layers
     seed = args.seed
+    features =args.features
     tf.random.set_seed(seed)
     np.random.seed(seed)
     L2reg = [10**float(args.L2reg)] * 10
@@ -186,8 +183,6 @@ if __name__=="__main__":
         features,
         late_patients_only,
         horizon0,
-        # model
-        model_choice,
         # MGP
         no_mc_samples,
         kernel_choice,

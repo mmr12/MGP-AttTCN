@@ -226,7 +226,7 @@ class DataGenerator:
 
     def long_load(self, to_save, features):
         t_print("DataGenerator -- loading data")
-        if features is None:
+        if features is None or features=='rosnati':
             path = self.head + "/data/train/GP_prep_v2.pkl"
             with open(path, "rb") as f:
                 self.train_data = pickle.load(f)
@@ -236,14 +236,14 @@ class DataGenerator:
             path = self.head + "/data/test/GP_prep_v2.pkl"
             with open(path, "rb") as f:
                 self.test_data = pickle.load(f)
-        else:
-            path = self.head + "/data/train/GP_prep_{}_v2.pkl".format(features)
+        elif features == 'moor':
+            path = self.head + "/data/moor/train/GP_prep_v2.pkl"
             with open(path, "rb") as f:
                 self.train_data = pickle.load(f)
-            path = self.head + "/data/val/GP_prep_{}_v2.pkl".format(features)
+            path = self.head + "/data/moor/val/GP_prep_v2.pkl"
             with open(path, "rb") as f:
                 self.val_data = pickle.load(f)
-            path = self.head + "/data/test/GP_prep_{}_v2.pkl".format(features)
+            path = self.head + "/data/moor/test/GP_prep_v2.pkl"
             with open(path, "rb") as f:
                 self.test_data = pickle.load(f)
 
