@@ -162,7 +162,7 @@ if __name__=="__main__":
     parser.add_argument('--no_mc_samples',
                         default=np.random.randint(8, high=20, size=None, dtype='l'),
                         type=int)
-    parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=int)
+    parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=float)
     parser.add_argument('--kernel_size', default=np.random.randint(2, high=6, size=None, dtype='l'), type=int)
     parser.add_argument('--num_layers', default=np.random.randint(2, high=8, size=None, dtype='l'), type=int)
     parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)

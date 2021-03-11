@@ -137,7 +137,7 @@ if __name__=="__main__":
     parser.add_argument('--no_mc_samples',
                         default=np.random.randint(8, high=20, size=None, dtype='l'),
                         type=int)
-    parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=int)
+    parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=float)
     parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)
     args = parser.parse_args()
     learning_rate = args.learning_rate
