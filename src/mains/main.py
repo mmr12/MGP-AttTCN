@@ -143,7 +143,6 @@ if __name__=="__main__":
     sigmoid_beta = True
 
     # training
-    batch_size = 128
     num_epochs = 100
 
 
@@ -157,9 +156,11 @@ if __name__=="__main__":
     parser.add_argument('--L2reg', default=np.random.randint(-5, high=8, size=None, dtype='l'), type=float)
     parser.add_argument('--kernel_size', default=np.random.randint(2, high=6, size=None, dtype='l'), type=int)
     parser.add_argument('--num_layers', default=np.random.randint(2, high=8, size=None, dtype='l'), type=int)
+    parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)
     parser.add_argument('--features', default='rosnati', type=str)
     args = parser.parse_args()
+    batch_size = args.batch_size
     learning_rate = args.learning_rate
     no_mc_samples = args.no_mc_samples
     kernel_size = (args.kernel_size,)
