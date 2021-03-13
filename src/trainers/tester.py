@@ -32,5 +32,5 @@ class Tester:
             outcome['y'] = np.concatenate((outcome['y'], batch_data[8].numpy()))
             outcome['y_hat'] = np.concatenate((outcome['y_hat'],
                                                self.model(inputs).numpy()[:,1]))
-        with open(os.path.join(self.log_path, 'test_out.pkl'), 'wb') as f:
+        with open(self.log_path, 'wb') as f:
             pickle.dump(outcome, f)
