@@ -107,8 +107,8 @@ def main(hparam_file, model_name, checkpoint_file, log_path):
 if __name__=='__main__':
     parser = ArgumentParser()
     parser.add_argument('--exp_name', type=str)
-    parser.add_argument('--epoch_numpber', type=int)
-    parser.add_argument('--model_name', type=int)
+    parser.add_argument('--epoch_number', type=int)
+    parser.add_argument('--model_name', type=str)
     args = parser.parse_args()
     path = os.path.join(head, 'logs', args.exp_name)
     h_param_file = os.path.join(path, 'hyperparam.pkl')
