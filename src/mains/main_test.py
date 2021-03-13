@@ -81,11 +81,6 @@ def main(hparam_file, model_name, checkpoint_file, log_path):
                      sigmoid_beta=hparams['sigmoid_beta'])
     else: raise NameError
 
-    # load checkpoint
-    with open(checkpoint_file, 'rb') as f:
-        checkpoint = pickle.load(f)
-    model.set_weights(checkpoint['weights'])
-
     # load data
     data = DataGenerator(no_mc_samples=hparams['no_mc_samples'],
                          max_no_dtpts=hparams['max_no_dtpts'],
@@ -97,6 +92,15 @@ def main(hparam_file, model_name, checkpoint_file, log_path):
                          fixed_idx_per_class=False,
                          features=hparams['features'])
 
+    # load checkpoint
+    with open(checkpoint_file, 'rb') as f:
+        checkpoint = pickle.load(f)
+    ## need to run model onto something before setting weights
+    minibatch = next(data.next_batch_test_all(1, 0))
+    _ = model(minibatch[:8])
+    model.set_weights(checkpoint['weights'])
+
+    # test
     tester = Tester(model,
                  data,
                  hparams['batch_size'],
