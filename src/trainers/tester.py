@@ -24,7 +24,7 @@ class Tester:
                    'y': np.empty(0),
                    "y_hat": np.empty(0)}
         for batch in tqdm(range(n_batches)):
-            batch_data = next(self.data.next_batch_test_all(batch, n_batches))
+            batch_data = next(self.data.next_batch_test_all(self.batch_size, batch))
             # expand data
             inputs = batch_data[:8]
             outcome['ID'] = np.concatenate((outcome['ID'], batch_data[10]))
