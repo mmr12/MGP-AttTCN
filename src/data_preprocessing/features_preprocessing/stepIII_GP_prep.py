@@ -118,22 +118,6 @@ def main(args):
     ct.save()
 
 
-def modular_main(outpath, onset_file_name, mr_features, extension_name):
-    cwd = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir)) + "/data/"
-    if extension_name is not None:
-        file = path + outpath + "/full_labvitals_{}.csv".format(extension_name)
-    else:
-        file = path + outpath + "/full_labvitals.csv"
-    data = pd.read_csv(file)
-    onsetfile = path + "processed/" + onset_file_name
-    onset = pd.read_csv(onsetfile)
-    ct = CompactTransform(data, onset, outpath)
-    if mr_features:
-        ct.calculation(features='mr_features')
-    else:
-        ct.calculation()
-    ct.save(features=extension_name)
 
 
 def parse_arg():
