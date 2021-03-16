@@ -67,7 +67,8 @@ def calc_metrics(outcome):
     df['mc_sample'] = df.groupby(['ID', 'class']).cumcount()
     metrics = {}
     n_mc_samples = df['mc_sample'].max()
-    for hz in range(6):
+    n_hz = int(df['class'].max())
+    for hz in range(n_hz):
         metrics['hz_{}'.format(hz)] = {'AUROC':{'mc_samples':[],},
                                        'PR_AUC':{'mc_samples':[],}}
         for sample in range(n_mc_samples):
