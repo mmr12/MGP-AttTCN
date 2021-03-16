@@ -9,7 +9,7 @@ import numpy as np
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
 sys.path.append(head)
-from src.models.GP_utils import kroneker_matrix, OU_kernel, K_vitals_initialiser, K_labs_initialiser
+from src.models.GP_utils import kroneker_matrix, OU_kernel, K_vitals_initialiser, K_labs_initialiser, SE_kernel
 from src.utils.debug import t_print
 
 
@@ -18,6 +18,7 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
                  time_window,
                  n_mc_samples,
                  n_features,
+                 kernel='OU',
                  log_noise_mean=-2,
                  log_noise_std=0.1,
                  log_length_v_mean=np.log(0.5),
@@ -77,6 +78,13 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
                                               trainable=True
                                               )
 
+        # defining the kernel
+        if kernel == 'OU':
+            self.kernel = OU_kernel
+        elif kernel == 'SE':
+            self.kernel = SE_kernel
+        else:
+            raise NameError
         # matrix decomposition method
         self.method_name = method_name
         self.add_diag = add_diag
@@ -175,8 +183,8 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
         # step I: calculate Sigma = K_D_v x_kroneker K_Ti_v + K_D_l x_kroneker K_Ti_l + D x_kroneker I
         Ti_big = tf.gather(Ti, ind_Ti)
 
-        K_Ti_v_big = OU_kernel(length=self.length_v, x1=Ti_big, x2=Ti_big)
-        K_Ti_l_big = OU_kernel(length=self.length_l, x1=Ti_big, x2=Ti_big)
+        K_Ti_v_big = self.kernel(length=self.length_v, x1=Ti_big, x2=Ti_big)
+        K_Ti_l_big = self.kernel(length=self.length_l, x1=Ti_big, x2=Ti_big)
 
         # calculate the kroneker product only for values that are actually present
         K_D_v_big = kroneker_matrix(self.K_D_v, ind_K_Di)
@@ -195,15 +203,15 @@ class MultiKernelMGPLayer(tf.keras.layers.Layer):
         K_D_l_big = kroneker_matrix(self.K_D_l, ind_K_D_l)
         ind_K_Xi = tf.tile(tf.range(X_len), [self.n_features])
         Xi_big = tf.gather(Xi, ind_K_Xi)
-        K_Xi_v_big = OU_kernel(self.length_v, Xi_big, Xi_big)
-        K_Xi_l_big = OU_kernel(self.length_l, Xi_big, Xi_big)
+        K_Xi_v_big = self.kernel(self.length_v, Xi_big, Xi_big)
+        K_Xi_l_big = self.kernel(self.length_l, Xi_big, Xi_big)
         K_D__K_Xi = tf.multiply(K_D_v_big, K_Xi_v_big) + tf.multiply(K_D_l_big, K_Xi_l_big)
 
         # K_D__K_XT
         K_D_v_big = kroneker_matrix(self.K_D_v, ind_K_Di, ind_K_D_l)
         K_D_l_big = kroneker_matrix(self.K_D_l, ind_K_Di, ind_K_D_l)
-        K_XT_v_big = OU_kernel(self.length_v, Xi_big, Ti_big)
-        K_XT_l_big = OU_kernel(self.length_l, Xi_big, Ti_big)
+        K_XT_v_big = self.kernel(self.length_v, Xi_big, Ti_big)
+        K_XT_l_big = self.kernel(self.length_l, Xi_big, Ti_big)
         K_D__K_XT = tf.multiply(K_D_v_big, K_XT_v_big) + tf.multiply(K_D_l_big, K_XT_l_big)
         # t_print("K_D__K_XT {}".format(K_D__K_XT.shape))
 

@@ -43,6 +43,7 @@ class GPattTCN:
         self.GP = MultiKernelMGPLayer(time_window=time_window,
                                       n_mc_samples=n_mc_samples,
                                       n_features=n_features,
+                                      kernel=kernel,
                                       log_noise_mean=log_noise_mean,
                                       log_noise_std=log_noise_std,
                                       method_name=method_name,

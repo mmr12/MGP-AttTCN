@@ -158,6 +158,7 @@ if __name__=="__main__":
     parser.add_argument('--num_layers', default=np.random.randint(2, high=8, size=None, dtype='l'), type=int)
     parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--seed', default=np.random.randint(1, high=9999, size=None, dtype='l'), type=int)
+    parser.add_argument('--kernel_choice', default='OU', type=str)
     parser.add_argument('--features', default='rosnati', type=str)
     args = parser.parse_args()
     batch_size = args.batch_size

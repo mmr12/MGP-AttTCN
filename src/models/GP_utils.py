@@ -26,6 +26,12 @@ def OU_kernel(length, x1, x2):
     K = tf.exp(-tf.abs(x1 - x2) / length)
     return K
 
+def SE_kernel(length, x1, x2):
+    x1 = tf.reshape(x1, [-1, 1])  # colvec
+    x2 = tf.reshape(x2, [1, -1])  # rowvec
+    K = tf.exp(-(x1 - x2)**2 / 2 * length)
+    return K
+
 
 def K_vitals_initialiser(shape, partition_info=None, dtype=None):
     # initialise lengths to be 0.01 for vitals and 5 for blood tests
