@@ -156,6 +156,10 @@ class DataGenerator:
         data = [self.test_data[i][batch * batch_size: (batch + 1) * batch_size] for i in range(len(self.test_data))]
         yield self.extract_data(data)
 
+    def next_batch_train_all(self, batch_size, batch, late=False, horizon0=False):
+        data = [self.train_data[i][batch * batch_size: (batch + 1) * batch_size] for i in range(len(self.train_data))]
+        yield self.extract_data(data)
+
     def extract_data(self, data):
         # data = [Y, T, ind_K_D, ind_T, num_distinct_Y, X, num_distinct_X, labels, static, classes]
         # data = [0, 1,       2,     3,              4, 5,              6,      7,      8,       9]

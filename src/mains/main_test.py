@@ -19,7 +19,7 @@ from src.models.GP_attTCN_ablations import GPattTCN_alpha, GPattTCN_beta
 
 
 
-def main(hparam_file, model_name, checkpoint_file, log_path):
+def main(hparam_file, model_name, checkpoint_file, log_path, Set):
     # load hpyerparams
     with open(hparam_file, 'rb') as f:
         hparams = pickle.load(f)
@@ -104,7 +104,8 @@ def main(hparam_file, model_name, checkpoint_file, log_path):
     tester = Tester(model,
                  data,
                  hparams['batch_size'],
-                 log_path,)
+                 log_path,
+                    Set)
 
     tester.run()
 
@@ -113,9 +114,10 @@ if __name__=='__main__':
     parser.add_argument('--exp_name', type=str)
     parser.add_argument('--epoch_number', type=int)
     parser.add_argument('--model_name', type=str)
+    parser.add_argument('--set', default='test', type=str)
     args = parser.parse_args()
     path = os.path.join(head, 'logs', args.exp_name)
     h_param_file = os.path.join(path, 'hyperparam.pkl')
     checkpoint_file = os.path.join(path, 'epoch_{}_out.pkl'.format(args.epoch_number))
     log_path = os.path.join(path, 'epoch_{}_test.pkl'.format(args.epoch_number))
-    main(h_param_file, args.model_name, checkpoint_file, log_path)
+    main(h_param_file, args.model_name, checkpoint_file, log_path, args.set)
