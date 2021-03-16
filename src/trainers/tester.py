@@ -3,6 +3,8 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from tensorflow.nn import softmax
+import pandas as pd
+from sklearn.metrics import precision_recall_curve, roc_curve, auc
 
 
 class Tester:
@@ -34,5 +36,34 @@ class Tester:
             outcome['y'] = np.concatenate((outcome['y'], batch_data[8].numpy()))
             outcome['y_hat'] = np.concatenate((outcome['y_hat'],
                                                y_hat.numpy()[:, 1]))
+        outcome['metrics'] = self.calc_metrics(outcome)
         with open(self.log_path, 'wb') as f:
             pickle.dump(outcome, f)
+
+    @staticmethod
+    def calc_metrics(outcome):
+        df = pd.DataFrame(outcome)
+        df['mc_sample'] = df.groupby(['ID', 'class']).cumcount()
+        metrics = {}
+        n_mc_samples = df['mc_sample'].max()
+        for hz in range(6):
+            metrics['hz_{}'.format(hz)] = {'AUROC':{'mc_samples':[],},
+                                           'PR_AUC':{'mc_samples':[],}}
+            for sample in range(n_mc_samples):
+                y = df.loc[(df['class'] == hz) & (df.mc_sample == sample), 'y'].to_numpy()
+                y_hat = df.loc[(df['class'] == hz) & (df.mc_sample == sample), 'y_hat'].to_numpy()
+                # calc metrics
+                fpr, tpr, _ = roc_curve(y_true=y, y_score=y_hat)
+                roc_auc = auc(fpr, tpr)
+
+                pre, rec, _ = precision_recall_curve(y_true=y, probas_pred=y_hat)
+                recall = rec[np.argsort(rec)]
+                precision = pre[np.argsort(rec)]
+                pr_auc = auc(recall, precision)
+
+                metrics['hz_{}'.format(hz)]['AUROC']['mc_samples'] = roc_auc
+                metrics['hz_{}'.format(hz)]['PR_AURC']['mc_samples'] = pr_auc
+            for m in ['AUROC', 'PR_AUC']:
+                metrics['hz_{}'.format(hz)][m]['mean'] = np.mean(metrics['hz_{}'.format(hz)][m]['mc_samples'])
+                metrics['hz_{}'.format(hz)][m]['std'] = np.std(metrics['hz_{}'.format(hz)][m]['mc_samples'])
+        return metrics
