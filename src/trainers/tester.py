@@ -74,7 +74,7 @@ def calc_metrics(outcome):
             pr_auc = auc(recall, precision)
 
             metrics['hz_{}'.format(hz)]['AUROC']['mc_samples'].append(roc_auc)
-            metrics['hz_{}'.format(hz)]['PR_AURC']['mc_samples'].append(pr_auc)
+            metrics['hz_{}'.format(hz)]['PR_AUC']['mc_samples'].append(pr_auc)
         for m in ['AUROC', 'PR_AUC']:
             metrics['hz_{}'.format(hz)][m]['mean'] = np.mean(metrics['hz_{}'.format(hz)][m]['mc_samples'])
             metrics['hz_{}'.format(hz)][m]['std'] = np.std(metrics['hz_{}'.format(hz)][m]['mc_samples'])
