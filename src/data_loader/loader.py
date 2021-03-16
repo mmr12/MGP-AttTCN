@@ -188,10 +188,11 @@ class DataGenerator:
         classes = data[9]
         # repeat for all MC samples
         classes = np.repeat(classes, self.no_mc_samples)
+        IDs = np.repeat(data[10], self.no_mc_samples)
         labels = np.repeat(labels, self.no_mc_samples)
         labels = tf.convert_to_tensor(labels, dtype=tf.int32, name="labels")
         if self.debug:
-            return Y, T, ind_K_D, ind_T, num_distinct_Y, X, num_distinct_X, static, labels, classes, data[10]
+            return Y, T, ind_K_D, ind_T, num_distinct_Y, X, num_distinct_X, static, labels, classes, IDs
         else:
             return Y, T, ind_K_D, ind_T, num_distinct_Y, X, num_distinct_X, static, labels, classes
 
