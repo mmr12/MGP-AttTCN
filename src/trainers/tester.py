@@ -52,6 +52,13 @@ class Tester:
         with open(self.log_path, 'wb') as f:
             pickle.dump(outcome, f)
 
+        outcome['metrics'] = calc_metrics(outcome)
+        with open(self.log_path, 'wb') as f:
+            pickle.dump(outcome, f)
+        for key in outcome:
+            print(key, round(outcome[key]['AUROC']['mean'] * 100, 2),
+                  round(outcome[key]['AUROC']['std'] * 100, 2))
+
 
 def calc_metrics(outcome):
     df = pd.DataFrame(outcome)
