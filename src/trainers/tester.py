@@ -37,8 +37,7 @@ class Tester:
         outcome = {'ID': np.empty(0),
                    'class': np.empty(0),
                    'y': np.empty(0),
-                   "y_hat": np.empty(0),
-                   "not_y_hat": np.empty(0)}
+                   "y_hat": np.empty(0)}
         for batch in tqdm(range(n_batches)):
             batch_data = next(self.iterator(self.batch_size, batch))
             # expand data
@@ -48,8 +47,6 @@ class Tester:
             outcome['class'] = np.concatenate((outcome['class'], batch_data[9]))
             outcome['y'] = np.concatenate((outcome['y'], batch_data[8].numpy()))
             outcome['y_hat'] = np.concatenate((outcome['y_hat'],
-                                               y_hat.numpy()[:, 1]))
-            outcome['not_y_hat'] = np.concatenate((outcome['not_y_hat'],
                                                y_hat.numpy()[:, 0]))
 
         with open(self.log_path, 'wb') as f:
