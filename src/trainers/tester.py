@@ -55,8 +55,9 @@ class Tester:
         outcome['metrics'] = calc_metrics(outcome)
         with open(self.log_path, 'wb') as f:
             pickle.dump(outcome, f)
-        print("mean AUROC: {}".format(np.mean([outcome['metrics'][key]['AUROC']['mean']* 100 for key in outcome])))
-        for key in outcome:
+        print("mean AUROC: {}".format(np.mean([outcome['metrics'][key]['AUROC']['mean']* 100
+                                               for key in outcome['metrics']])))
+        for key in outcome['metrics']:
             print(key, round(outcome['metrics'][key]['AUROC']['mean'] * 100, 2),
                   round(outcome['metrics'][key]['AUROC']['std'] * 100, 2))
 
