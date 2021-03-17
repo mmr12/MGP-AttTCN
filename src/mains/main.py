@@ -134,9 +134,6 @@ if __name__=="__main__":
     late_patients_only = False
     horizon0 = False
 
-    # MGP
-    kernel_choice = 'OU'
-
     # TCN
     stride = 1
     DO = [0.01] * 10
@@ -184,7 +181,7 @@ if __name__=="__main__":
         horizon0,
         # MGP
         no_mc_samples,
-        kernel_choice,
+        args.kernel_choice,
         # TCN
         num_layers,
         kernel_size,
