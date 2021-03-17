@@ -14,7 +14,7 @@ def extract_horizon(h, variables, static_variables):
            for key in ['train', 'val','test']}
     dfs_stat = {key: pd.read_csv(os.path.join(head, 'data', key, 'full_static_binned.csv'))
            for key in ['train', 'val','test']}
-    out = {key:{} for key in dfs}
+    out = {key: {} for key in dfs}
     for key in dfs:
         df = dfs[key]
         df_static = dfs_stat[key]
@@ -88,7 +88,6 @@ def extract_horizon(h, variables, static_variables):
         out[key]['X'] = np.concatenate((static, M, D_hat, D2_hat, D3_hat), -1)
         out[key]['y'] = df[['icustay_id', 'label']].drop_duplicates().label.to_numpy()
         out[key]['IDs'] = IDs
-                with open(os.path.join(head, key, 'InSight.pkl'), 'wb') as f:
-                    pickle.dump(out[key], f)
-
-
+        with open(os.path.join(head, key, 'InSight_hz_{}.pkl'.format(h)), 'wb') as f:
+            pickle.dump(out[key], f)
+    return out
