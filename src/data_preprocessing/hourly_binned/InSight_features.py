@@ -29,7 +29,8 @@ def extract_horizon(h, variables, static_variables):
         # then extract InSight features
         data = np.empty((len(IDs), 6, len(variables)))
         for i, ID in tqdm(enumerate(IDs)):
-            n = df.loc[df.icustay_id == ID, 'time_to_onset'].max() + 1
+            n = df.loc[df.icustay_id == ID, 'time_to_onset'].max() \
+                - df.loc[df.icustay_id == ID, 'time_to_onset'].min() + 1
             if n < 6:
                 data[i, -n:] = df.loc[df.icustay_id == ID, variables]
             else:
@@ -88,6 +89,27 @@ def extract_horizon(h, variables, static_variables):
         out[key]['X'] = np.concatenate((static, M, D_hat, D2_hat, D3_hat), -1)
         out[key]['y'] = df[['icustay_id', 'label']].drop_duplicates().label.to_numpy()
         out[key]['IDs'] = IDs
-        with open(os.path.join(head, key, 'InSight_hz_{}.pkl'.format(h)), 'wb') as f:
+        with open(os.path.join(head, 'data', key, 'InSight_hz_{}.pkl'.format(h)), 'wb') as f:
             pickle.dump(out[key], f)
     return out
+
+def large_main():
+    variables = ['sysbp', 'diabp', 'meanbp', 'resprate', 'heartrate', 'spo2_pulsoxy',
+                 'tempc', 'bicarbonate', 'creatinine', 'chloride', 'glucose',
+                 'hematocrit', 'hemoglobin', 'lactate', 'platelet', 'potassium', 'ptt',
+                 'inr', 'pt', 'sodium', 'bun', 'wbc', 'magnesium', 'ph_bloodgas']
+    static_variables = ['admission_age', 'gender_M',
+       'first_careunit_CCU', 'first_careunit_CSRU', 'first_careunit_MICU',
+       'first_careunit_SICU', 'first_careunit_TSICU']
+    Data = {}
+    for hz in range(7):
+        Data[hz] = extract_horizon(hz, variables, static_variables)
+    return Data
+
+def small_main():
+    variables = ['sysbp', 'ptt', 'heartrate', 'tempc','resprate', 'wbc',  'ph_bloodgas', 'spo2_pulsoxy',   ]
+    static_variables = ['admission_age',]
+    Data = {}
+    for hz in range(7):
+        Data[hz] = extract_horizon(hz, variables, static_variables)
+    return Data
