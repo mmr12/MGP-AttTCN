@@ -4,12 +4,14 @@ import numpy as np
 import pandas as pd
 import itertools
 from tqdm import tqdm
+from sklearn.linear_model import LogisticRegression as LR
+from sklearn.metrics import precision_recall_curve, roc_curve, auc
 import pickle
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
 sys.path.append(head)
 
-def extract_horizon(h, variables, static_variables):
+def extract_horizon(h, variables, static_variables, savename):
     dfs = {key: pd.read_csv(os.path.join(head, 'data', key, 'full_labvitals_binned.csv'))
            for key in ['train', 'val','test']}
     dfs_stat = {key: pd.read_csv(os.path.join(head, 'data', key, 'full_static_binned.csv'))
@@ -89,7 +91,7 @@ def extract_horizon(h, variables, static_variables):
         out[key]['X'] = np.concatenate((static, M, D_hat, D2_hat, D3_hat), -1)
         out[key]['y'] = df[['icustay_id', 'label']].drop_duplicates().label.to_numpy()
         out[key]['IDs'] = IDs
-        with open(os.path.join(head, 'data', key, 'InSight_hz_{}.pkl'.format(h)), 'wb') as f:
+        with open(os.path.join(head, 'data', key, 'InSight_{}_hz_{}.pkl'.format(savename, h)), 'wb') as f:
             pickle.dump(out[key], f)
     return out
 
@@ -103,7 +105,7 @@ def large_main():
        'first_careunit_SICU', 'first_careunit_TSICU']
     Data = {}
     for hz in range(7):
-        Data[hz] = extract_horizon(hz, variables, static_variables)
+        Data[hz] = extract_horizon(hz, variables, static_variables, 'extended')
     return Data
 
 def small_main():
@@ -111,5 +113,38 @@ def small_main():
     static_variables = ['admission_age',]
     Data = {}
     for hz in range(7):
-        Data[hz] = extract_horizon(hz, variables, static_variables)
+        Data[hz] = extract_horizon(hz, variables, static_variables, 'original')
     return Data
+
+def train_model(data, model_args):
+    if data == 'small':
+        Data = small_main()
+    elif data == 'large':
+        Data = large_main()
+    else:
+        raise NameError
+    X = np.concatenate([Data[h]['train']['X'] for h in Data], axis=0)
+    y = np.concatenate([Data[h]['train']['y'] for h in Data], axis=0)
+
+    model = LR(**model_args)
+    model.fit(X, y)
+    # overall
+    AUROCs = {'train':[], 'val':[]}
+    PR_AUCs = {'train':[], 'val':[]}
+    for h in Data:
+        for _set in ['train', 'val']:
+            y = Data[h][_set]['y']
+            y_hat = model.predict_proba(Data[h][_set]['X'])
+            fpr, tpr, _ = roc_curve(y_true=y, y_score=y_hat[:, 1])
+            AUROCs[_set].append(auc(fpr, tpr))
+
+            pre, rec, _ = precision_recall_curve(y_true=y, probas_pred=y_hat[:, 1])
+            recall = rec[np.argsort(rec)]
+            precision = pre[np.argsort(rec)]
+            PR_AUCs[_set].append(auc(recall, precision))
+
+            print(h, _set, AUROCs[_set][-1], PR_AUCs[_set][-1])
+
+    return AUROCs, PR_AUCs
+
+
