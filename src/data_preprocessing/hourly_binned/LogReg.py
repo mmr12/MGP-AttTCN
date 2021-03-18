@@ -24,7 +24,7 @@ def load_horizon(labels, h, variables, static_variables, savename, force_extract
     else:
         raise NameError
     for key in ['train', 'val','test']:
-        save_path = os.path.join(starting_path, key, 'InSight_{}_hz_{}.pkl'.format(savename, h))
+        save_path = os.path.join(starting_path, key, 'LogReg_{}_hz_{}.pkl'.format(savename, h))
         if not os.path.isfile(save_path):
             load = False
         else:
@@ -68,7 +68,7 @@ def extract_horizon(labels, h, variables, static_variables, savename, verbose):
             else:
                 data[i] = df.loc[df.icustay_id == ID, variables]
         static = df_static.loc[df_static.icustay_id.isin(IDs), static_variables]
-        out[key]['X'] = np.concatenate((static, data), -1)
+        out[key]['X'] = np.concatenate((static, data.reshape(len(IDs), -1)), -1)
         out[key]['y'] = df[['icustay_id', 'label']].drop_duplicates().label.to_numpy()
         out[key]['IDs'] = IDs
         with open(os.path.join(starting_path, key, 'LogReg_{}_hz_{}.pkl'.format(savename, h)), 'wb') as f:
