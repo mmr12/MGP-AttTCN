@@ -15,7 +15,7 @@ head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
 sys.path.append(head)
 
 
-def load_horizon(h, variables, static_variables, savename):
+def load_horizon(h, variables, static_variables, savename, force_extract, verbose):
     load = True
     out = {}
     for key in ['train', 'val','test']:
@@ -25,11 +25,11 @@ def load_horizon(h, variables, static_variables, savename):
         else:
             with open(save_path, 'rb') as f:
                 out[key] = pickle.load(f)
-    if not load:
-        out = extract_horizon(h, variables, static_variables, savename)
+    if not load or force_extract:
+        out = extract_horizon(h, variables, static_variables, savename, verbose)
     return out
 
-def extract_horizon(h, variables, static_variables, savename):
+def extract_horizon(h, variables, static_variables, savename, verbose):
     dfs = {key: pd.read_csv(os.path.join(head, 'data', key, 'full_labvitals_binned.csv'))
            for key in ['train', 'val','test']}
     dfs_stat = {key: pd.read_csv(os.path.join(head, 'data', key, 'full_static_binned.csv'))
@@ -58,12 +58,15 @@ def extract_horizon(h, variables, static_variables, savename):
 
 
         M = data.mean(1)
+        if verbose:
+            print('M nas', np.sum(np.isnan(M)))
         D = data[:, -1] - data[:, 0]
         D_hat = np.zeros((len(IDs), 0))
         for f, feature in tqdm(enumerate(variables)):
             mini_data = D[:, f]
             mini_data_non_null = D[D != 0]
             q = np.quantile(mini_data_non_null, (1 / 3, 2 / 3))
+            print('D1, nan',feature, np.sum(np.isnan(mini_data_non_null)), '\t', 'q', q)
             mini_data[mini_data < q[0]] = -1
             mini_data[(mini_data >= q[0]) & (mini_data < q[1])] = 0
             mini_data[mini_data >= q[1]] = 1
@@ -79,6 +82,7 @@ def extract_horizon(h, variables, static_variables, savename):
             m_d2 = D[:, f2]
             temp = (m_d1 - means[f1]) * (m_d2 - means[f2]) / (stds[f1] * stds[f2])
             q = np.quantile(temp[temp != 0], (1 / 3, 2 / 3))
+            print('D2, nan', f1, f2, np.sum(np.isnan(temp)), '\t', 'q', q)
             idx_neg = temp < q[0]
             idx_zero = (temp >= q[0]) & (temp < q[1])
             idx_pos = temp >= q[0]
@@ -96,6 +100,7 @@ def extract_horizon(h, variables, static_variables, savename):
             m_d3 = D[:, f3]
             temp = (m_d1 - means[f1]) * (m_d2 - means[f2]) * (m_d3 - means[f3]) / (stds[f1] * stds[f2] * stds[f3])
             q = np.quantile(temp[temp != 0], (1 / 3, 2 / 3))
+            print('D2, nan', f1, f2, f3, np.sum(np.isnan(temp)), '\t', 'q', q)
             idx_neg = temp < q[0]
             idx_zero = (temp >= q[0]) & (temp < q[1])
             idx_pos = temp >= q[0]
@@ -113,7 +118,7 @@ def extract_horizon(h, variables, static_variables, savename):
             pickle.dump(out[key], f)
     return out
 
-def large_main():
+def large_main(force_extract, verbose):
     variables = ['sysbp', 'diabp', 'meanbp', 'resprate', 'heartrate', 'spo2_pulsoxy',
                  'tempc', 'bicarbonate', 'creatinine', 'chloride', 'glucose',
                  'hematocrit', 'hemoglobin', 'lactate', 'platelet', 'potassium', 'ptt',
@@ -123,22 +128,22 @@ def large_main():
        'first_careunit_SICU', 'first_careunit_TSICU']
     Data = {}
     for hz in range(7):
-        Data[hz] = load_horizon(hz, variables, static_variables, 'extended')
+        Data[hz] = load_horizon(hz, variables, static_variables, 'extended', force_extract, verbose)
     return Data
 
-def small_main():
+def small_main(force_extract, verbose):
     variables = ['sysbp', 'ptt', 'heartrate', 'tempc','resprate', 'wbc',  'ph_bloodgas', 'spo2_pulsoxy',   ]
     static_variables = ['admission_age',]
     Data = {}
     for hz in range(7):
-        Data[hz] = load_horizon(hz, variables, static_variables, 'original')
+        Data[hz] = load_horizon(hz, variables, static_variables, 'original', force_extract, verbose)
     return Data
 
-def train_model(data, model_args):
+def train_model(data, model_args, force_extract=False, verbose=False):
     if data == 'small':
-        Data = small_main()
+        Data = small_main(force_extract, verbose)
     elif data == 'large':
-        Data = large_main()
+        Data = large_main(force_extract, verbose)
     else:
         raise NameError
     X = np.concatenate([Data[h]['train']['X'] for h in Data], axis=0)
