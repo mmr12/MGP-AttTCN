@@ -7,9 +7,27 @@ from tqdm import tqdm
 from sklearn.linear_model import LogisticRegression as LR
 from sklearn.metrics import precision_recall_curve, roc_curve, auc
 import pickle
+# head = os.getcwd()
+# from src.data_preprocessing.hourly_binned.InSight_features import train_model
+
 cwd = os.path.dirname(os.path.abspath(__file__))
 head = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, os.pardir))
 sys.path.append(head)
+
+
+def load_horizon(h, variables, static_variables, savename):
+    load = True
+    out = {}
+    for key in ['train', 'val','test']:
+        save_path = os.path.join(head, 'data', key, 'InSight_{}_hz_{}.pkl'.format(savename, h))
+        if not os.path.isfile(save_path):
+            load = False
+        else:
+            with open(save_path, 'rb') as f:
+                out[key] = pickle.load(f)
+    if not load:
+        out = extract_horizon(h, variables, static_variables, savename)
+    return out
 
 def extract_horizon(h, variables, static_variables, savename):
     dfs = {key: pd.read_csv(os.path.join(head, 'data', key, 'full_labvitals_binned.csv'))
@@ -105,7 +123,7 @@ def large_main():
        'first_careunit_SICU', 'first_careunit_TSICU']
     Data = {}
     for hz in range(7):
-        Data[hz] = extract_horizon(hz, variables, static_variables, 'extended')
+        Data[hz] = load_horizon(hz, variables, static_variables, 'extended')
     return Data
 
 def small_main():
@@ -113,7 +131,7 @@ def small_main():
     static_variables = ['admission_age',]
     Data = {}
     for hz in range(7):
-        Data[hz] = extract_horizon(hz, variables, static_variables, 'original')
+        Data[hz] = load_horizon(hz, variables, static_variables, 'original')
     return Data
 
 def train_model(data, model_args):
