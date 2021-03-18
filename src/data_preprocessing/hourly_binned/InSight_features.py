@@ -47,7 +47,7 @@ def extract_horizon(h, variables, static_variables, savename, verbose):
         df = df.dropna()
         IDs = df.icustay_id.unique().tolist()
         # then extract InSight features
-        data = np.empty((len(IDs), 6, len(variables)))
+        data = np.zeros((len(IDs), 6, len(variables)))
         for i, ID in tqdm(enumerate(IDs)):
             n = df.loc[df.icustay_id == ID, 'time_to_onset'].max() \
                 - df.loc[df.icustay_id == ID, 'time_to_onset'].min() + 1
@@ -128,6 +128,8 @@ def large_main(force_extract, verbose):
        'first_careunit_SICU', 'first_careunit_TSICU']
     Data = {}
     for hz in range(7):
+        if verbose:
+            print(hz)
         Data[hz] = load_horizon(hz, variables, static_variables, 'extended', force_extract, verbose)
     return Data
 
@@ -136,6 +138,8 @@ def small_main(force_extract, verbose):
     static_variables = ['admission_age',]
     Data = {}
     for hz in range(7):
+        if verbose:
+            print(hz)
         Data[hz] = load_horizon(hz, variables, static_variables, 'original', force_extract, verbose)
     return Data
 
